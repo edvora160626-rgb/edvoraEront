@@ -204,14 +204,14 @@ function CustomDatePicker({
     ? createPortal(
         <div
           ref={calendarRef}
-          className="fixed z-[100000] w-[min(100vw-1rem,320px)] rounded-xl border border-[#C4B5FD] bg-white shadow-2xl overflow-hidden"
+          className="fixed z-[100000] w-[min(100vw-1rem,320px)] rounded-xl border border-[#C3C3D5] bg-white shadow-2xl overflow-hidden"
           style={{
             top: position.top,
             left: position.left,
             width: position.width,
           }}
         >
-          <div className="flex items-center justify-between bg-[#7F56D9] px-3 sm:px-4 py-3 text-white">
+          <div className="flex items-center justify-between bg-[#A77A95] px-3 sm:px-4 py-3 text-white">
             <button
               type="button"
               onClick={() =>
@@ -219,7 +219,7 @@ function CustomDatePicker({
                   new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1)
                 )
               }
-              className="rounded-lg p-1.5 hover:bg-[#6941C6] transition"
+              className="rounded-lg p-1.5 hover:bg-[#8F6580] transition"
               aria-label="Previous month"
             >
               <ChevronLeft size={18} />
@@ -236,7 +236,7 @@ function CustomDatePicker({
                   new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1)
                 )
               }
-              className="rounded-lg p-1.5 hover:bg-[#6941C6] transition"
+              className="rounded-lg p-1.5 hover:bg-[#8F6580] transition"
               aria-label="Next month"
             >
               <ChevronRight size={18} />
@@ -247,7 +247,7 @@ function CustomDatePicker({
             {WEEKDAYS.map((day) => (
               <div
                 key={day}
-                className="text-center text-[11px] sm:text-xs font-semibold text-[#6941C6]"
+                className="text-center text-[11px] sm:text-xs font-semibold text-[#8F6580]"
               >
                 {day}
               </div>
@@ -268,12 +268,12 @@ function CustomDatePicker({
                   onClick={() => handleSelect(date)}
                   className={`h-8 sm:h-9 rounded-lg text-xs sm:text-sm transition ${
                     selected
-                      ? "bg-[#7F56D9] text-white font-semibold shadow-sm"
+                      ? "bg-[#A77A95] text-white font-semibold shadow-sm"
                       : isToday
-                      ? "bg-[#F3E8FF] text-[#7F56D9] font-semibold ring-1 ring-[#C4B5FD]"
+                      ? "bg-[#FAEEE9] text-[#A77A95] font-semibold ring-1 ring-[#C3C3D5]"
                       : currentMonth
-                      ? "text-[#2E1065] hover:bg-[#F3E8FF] hover:text-[#6941C6]"
-                      : "text-[#98A2B3] hover:bg-[#FAF5FF]"
+                      ? "text-[#735366] hover:bg-[#FAEEE9] hover:text-[#8F6580]"
+                      : "text-[#98A2B3] hover:bg-[#FAEEE9]"
                   } ${disabled ? "opacity-40 cursor-not-allowed hover:bg-transparent" : ""}`}
                 >
                   {date.getDate()}
@@ -282,18 +282,18 @@ function CustomDatePicker({
             })}
           </div>
 
-          <div className="flex items-center justify-between border-t border-[#E9D5FF] bg-[#FAF5FF] px-3 sm:px-4 py-2.5">
+          <div className="flex items-center justify-between border-t border-[#C3C3D5] bg-[#FAEEE9] px-3 sm:px-4 py-2.5">
             <button
               type="button"
               onClick={handleClear}
-              className="text-xs sm:text-sm font-medium text-[#6941C6] hover:text-[#7F56D9] transition"
+              className="text-xs sm:text-sm font-medium text-[#8F6580] hover:text-[#A77A95] transition"
             >
               Clear
             </button>
             <button
               type="button"
               onClick={handleToday}
-              className="text-xs sm:text-sm font-semibold text-[#7F56D9] hover:text-[#6941C6] transition"
+              className="text-xs sm:text-sm font-semibold text-[#A77A95] hover:text-[#8F6580] transition"
             >
               Today
             </button>
@@ -311,8 +311,8 @@ function CustomDatePicker({
           onClick={() => setOpen((prev) => !prev)}
           className={`w-full h-[38px] rounded-md border bg-white px-3 pr-10 text-left text-[14px] outline-none transition ${
             open
-              ? "border-[#7F56D9] ring-2 ring-[#C4B5FD]"
-              : "border-[#D0D5DD] hover:border-[#8B5CF6] focus:border-[#7F56D9]"
+              ? "border-[#A77A95] ring-2 ring-[#C3C3D5]"
+              : "border-[#D0D5DD] hover:border-[#A77A95] focus:border-[#A77A95]"
           } ${value ? "text-[#344054]" : "text-[#98A2B3]"}`}
         >
           {value ? toDisplayValue(value) : placeholder}
@@ -320,7 +320,7 @@ function CustomDatePicker({
 
         <Calendar
           size={16}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7F56D9] pointer-events-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A77A95] pointer-events-none"
         />
       </div>
 

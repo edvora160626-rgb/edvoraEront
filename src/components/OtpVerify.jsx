@@ -146,13 +146,13 @@ function OtpVerify() {
         Verify your identity
       </p>
 
-      <h1 className="text-2xl sm:text-[28px] font-bold text-[#2E1065] mb-4">
+      <h1 className="text-2xl sm:text-[28px] font-bold text-[#735366] mb-4">
         Enter code
       </h1>
 
       <p className="text-[13px] sm:text-[14px] text-[#667085] mb-6">
         We sent a 6-digit code to{" "}
-        <span className="font-semibold text-[#7F56D9] break-all">
+        <span className="font-semibold text-[#A77A95] break-all">
           {maskEmail(email)}
         </span>
       </p>
@@ -173,7 +173,7 @@ function OtpVerify() {
             className={`w-9 h-11 sm:w-10 sm:h-12 text-center text-[15px] sm:text-[16px] rounded-xl border bg-white outline-none transition-colors ${
               otpErr
                 ? "border-red-500 focus:border-red-500"
-                : "border-[#D0D5DD] focus:border-[#7F56D9]"
+                : "border-[#D0D5DD] focus:border-[#A77A95]"
             }`}
           />
         ))}
@@ -190,7 +190,7 @@ function OtpVerify() {
           disabled={!canResend}
           className={`${
             canResend
-              ? "text-[#7F56D9] hover:text-[#6941C6]"
+              ? "text-[#A77A95] hover:text-[#8F6580]"
               : "text-[#98A2B3] cursor-not-allowed"
           }`}
         >
@@ -200,7 +200,7 @@ function OtpVerify() {
         <button
           type="button"
           onClick={() => navigate("/forgot-password", { state: { email } })}
-          className="text-[#667085] hover:text-[#6941C6]"
+          className="text-[#667085] hover:text-[#8F6580]"
         >
           Change email
         </button>
@@ -210,7 +210,7 @@ function OtpVerify() {
         type="button"
         disabled={verifying}
         onClick={doVerify}
-        className="w-full h-[48px] rounded-xl bg-[#7F56D9] hover:bg-[#6941C6] text-white font-semibold transition disabled:opacity-60"
+        className="w-full h-[48px] rounded-xl bg-[#A77A95] hover:bg-[#8F6580] text-white font-semibold transition disabled:opacity-60"
       >
         {verifying ? "Verifying..." : "Verify OTP"}
       </button>
@@ -219,7 +219,7 @@ function OtpVerify() {
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="font-semibold text-[#7F56D9] hover:text-[#6941C6]"
+          className="font-semibold text-[#A77A95] hover:text-[#8F6580]"
         >
           Back to login
         </button>

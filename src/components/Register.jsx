@@ -11,6 +11,7 @@ function RegisterModal({ onClose }) {
   const [userType, setUserType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [schoolOptions, setSchoolOptions] = useState([]);
+  const [classOptions, setClassOptions] = useState([]);
   const [formData, setFormData] = useState({
     schoolId: "",
     role: "",
@@ -81,6 +82,39 @@ function RegisterModal({ onClose }) {
     loadSchools();
   }, []);
 
+  useEffect(() => {
+    const loadClasses = async () => {
+      if (!formData.schoolId) {
+        setClassOptions([]);
+        return;
+      }
+
+      try {
+        const { data } = await axios.post(
+          `${API_BASE}/class/getActiveClassesBySchool`,
+          { schoolId: formData.schoolId, status: "ACTIVE" }
+        );
+
+        const options = (data?.data || []).map((cls) => ({
+          value: String(cls._id),
+          label: `${cls.className} - ${cls.section}`,
+          section: cls.section || "",
+          className: cls.className || "",
+        }));
+        setClassOptions(options);
+      } catch (error) {
+        setClassOptions([]);
+        openSnackbar({
+          message:
+            error?.response?.data?.message || "Failed to load classes",
+          variant: "error",
+        });
+      }
+    };
+
+    loadClasses();
+  }, [formData.schoolId]);
+
   const handleSubmit = async () => {
     try {
       // Validation
@@ -119,10 +153,22 @@ function RegisterModal({ onClose }) {
         password: formData.password,
       };
 
-      // Student
+      // Student — grade must be Class ObjectId per Student model
       if (formData.role === "STUDENT") {
-        payload.admissionNumber = formData.admissionNumber;
-        payload.rollNumber = formData.rollNumber;
+        if (
+          !formData.admissionNumber ||
+          !formData.rollNumber ||
+          !formData.grade ||
+          !formData.section
+        ) {
+          return openSnackbar({
+            message: "Admission Number, Register Number and Class are required",
+            variant: "warning",
+          });
+        }
+
+        payload.admissionNumber = formData.admissionNumber.trim();
+        payload.rollNumber = formData.rollNumber.trim();
         payload.grade = formData.grade;
         payload.section = formData.section;
       }
@@ -135,10 +181,29 @@ function RegisterModal({ onClose }) {
         payload.subjects = formData.subjects;
       }
 
-      // Parent
+      // Parent — send children as admission numbers (API resolves to Student IDs)
       if (formData.role === "PARENT") {
+        if (!formData.relationship) {
+          return openSnackbar({
+            message: "Relationship is required",
+            variant: "warning",
+          });
+        }
+
+        const childrenValues = String(formData.children || "")
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+
+        if (childrenValues.length === 0) {
+          return openSnackbar({
+            message: "Enter at least one child admission number",
+            variant: "warning",
+          });
+        }
+
         payload.relationship = formData.relationship;
-        payload.children = formData.children;
+        payload.children = childrenValues;
       }
 
       const response = await axios.post(`${API_BASE}/auth/register`, payload, {
@@ -206,7 +271,7 @@ function RegisterModal({ onClose }) {
     }
   };
   const inputClass =
-    "w-full h-[38px] rounded-md border border-[#D0D5DD] bg-white px-3 text-[14px] text-[#344054] outline-none focus:border-violet-500";
+    "w-full h-[38px] rounded-md border border-[#D0D5DD] bg-white px-3 text-[14px] text-[#344054] outline-none focus:border-[#A77A95]";
 
   const labelClass =
     "block text-[13px] font-semibold text-[#667085] mb-2";
@@ -215,6 +280,11 @@ function RegisterModal({ onClose }) {
     { value: "male", label: "Male" },
     { value: "female", label: "Female" },
     { value: "other", label: "Other" },
+  ];
+  const relationshipOptions = [
+    { value: "Father", label: "Father" },
+    { value: "Mother", label: "Mother" },
+    { value: "Guardian", label: "Guardian" },
   ];
   const userTypeOptions = [
     { value: "student", label: "Student" },
@@ -422,6 +492,8 @@ function RegisterModal({ onClose }) {
                   setFormData((prev) => ({
                     ...prev,
                     schoolId: option?.value || "",
+                    grade: "",
+                    section: "",
                   }))
                 }
               />
@@ -462,7 +534,7 @@ function RegisterModal({ onClose }) {
 
               <div>
                 <label className={labelClass}>
-                  Admission Number
+                  Admission Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="admissionNumber"
@@ -475,7 +547,7 @@ function RegisterModal({ onClose }) {
 
               <div>
                 <label className={labelClass}>
-                  Register Number
+                  Register Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="rollNumber"
@@ -488,14 +560,31 @@ function RegisterModal({ onClose }) {
 
               <div>
                 <label className={labelClass}>
-                  Class
+                  Class <span className="text-red-500">*</span>
                 </label>
-                <input
-                  name="grade"
-                  value={formData.grade}
-                  onChange={handleChange}
-                  placeholder="Class"
-                  className={inputClass}
+                <CustomSelect
+                  options={classOptions}
+                  placeholder={
+                    !formData.schoolId
+                      ? "Select school first"
+                      : classOptions.length
+                        ? "Select class"
+                        : "No classes for this school"
+                  }
+                  isSearchable
+                  isDisabled={!formData.schoolId || classOptions.length === 0}
+                  value={
+                    classOptions.find(
+                      (option) => option.value === formData.grade
+                    ) || null
+                  }
+                  onChange={(option) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      grade: option?.value || "",
+                      section: option?.section || "",
+                    }))
+                  }
                 />
               </div>
 
@@ -506,9 +595,9 @@ function RegisterModal({ onClose }) {
                 <input
                   name="section"
                   value={formData.section}
-                  onChange={handleChange}
-                  placeholder="Section"
-                  className={inputClass}
+                  readOnly
+                  placeholder="Filled from class"
+                  className={`${inputClass} bg-[#F9FAFB]`}
                 />
               </div>
 
@@ -580,28 +669,40 @@ function RegisterModal({ onClose }) {
 
               <div>
                 <label className={labelClass}>
-                  childrens
+                  Relationship <span className="text-red-500">*</span>
+                </label>
+                <CustomSelect
+                  options={relationshipOptions}
+                  placeholder="Select relationship"
+                  value={
+                    relationshipOptions.find(
+                      (option) => option.value === formData.relationship
+                    ) || null
+                  }
+                  onChange={(option) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      relationship: option?.value || "",
+                    }))
+                  }
+                />
+              </div>
+
+              <div className="min-[640px]:col-span-2">
+                <label className={labelClass}>
+                  Children (Admission Numbers){" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="children"
                   value={formData.children}
                   onChange={handleChange}
-                  placeholder="Children"
+                  placeholder="e.g. ADM001, ADM002"
                   className={inputClass}
                 />
-              </div>
-
-              <div>
-                <label className={labelClass}>
-                  Relationship
-                </label>
-                <input
-                  name="relationship"
-                  value={formData.relationship}
-                  onChange={handleChange}
-                  placeholder="Relationship"
-                  className={inputClass}
-                />
+                <p className="mt-1 text-[12px] text-[#98A2B3]">
+                  Enter existing student admission numbers, comma-separated
+                </p>
               </div>
 
               <div>
@@ -687,7 +788,7 @@ function RegisterModal({ onClose }) {
           <div className="flex items-start sm:items-center justify-center mt-6 sm:mt-8 px-2">
             <input
               type="checkbox"
-              className="w-4 h-4 mt-1 sm:mt-0 shrink-0 accent-[#7F56D9] cursor-pointer"
+              className="w-4 h-4 mt-1 sm:mt-0 shrink-0 accent-[#A77A95] cursor-pointer"
             />
 
             <span className="ml-3 text-[13px] sm:text-[14px] text-[#667085] text-center sm:text-left">
@@ -704,7 +805,7 @@ function RegisterModal({ onClose }) {
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-6 h-[38px] rounded-md bg-[#7F56D9] hover:bg-[#6941C6] text-white text-[13px] font-medium"
+              className="px-6 h-[38px] rounded-md bg-[#A77A95] hover:bg-[#8F6580] text-white text-[13px] font-medium"
             >
               Create Account
             </button>

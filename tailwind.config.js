@@ -50,18 +50,31 @@ export default {
 
     extend: {
       colors: {
-        primary: "#8B5CF6",
-        secondary: "#C4B5FD",
-        accent: "#A855F7",
+        primary: "#A77A95",
+        secondary: "#C3C3D5",
+        accent: "#F5D69B",
 
-        "primary-hover": "#7C3AED",
-        "secondary-hover": "#A78BFA",
+        "primary-hover": "#8F6580",
+        "primary-deep": "#735366",
+        "primary-soft": "#FAEEE9",
+        "primary-muted": "#FAEEE9",
+        "primary-border": "#C3C3D5",
 
-        card: "#F5EEFF",
-        "card-dark": "#E9D5FF",
+        "secondary-hover": "#A77A95",
+        "secondary-soft": "#E8E8F0",
 
-        textPrimary: "#2E1065",
-        textSecondary: "#6D28D9",
+        "accent-hover": "#D4B87A",
+        "accent-soft": "#FAEEE9",
+        "accent-bright": "#F5D69B",
+
+        card: "#FFFFFF",
+        "card-dark": "#C3C3D5",
+
+        textPrimary: "#735366",
+        textSecondary: "#A77A95",
+
+        surface: "#FAEEE9",
+        "surface-tint": "#FAEEE9",
       },
     },
   },

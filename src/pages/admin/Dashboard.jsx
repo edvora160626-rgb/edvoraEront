@@ -19,33 +19,36 @@ import {
   getRoleConfig,
   getViewRoles,
 } from "../../utils/rolePermissions";
-import { fetchAllViewableRequests } from "../../utils/requestsApi";
+import {
+  fetchAllViewableRequests,
+  fetchPendingCounts,
+} from "../../utils/requestsApi";
 
 const ROLE_META = {
   SCHOOL_ADMIN: {
     icon: ShieldCheck,
-    gradient: "from-violet-600 to-purple-700",
-    light: "bg-violet-50 text-violet-700",
+    gradient: "from-[#A77A95] to-[#735366]",
+    light: "bg-[#FAEEE9] text-[#735366]",
   },
   OFFICE: {
     icon: Building2,
-    gradient: "from-sky-500 to-cyan-600",
-    light: "bg-sky-50 text-sky-700",
+    gradient: "from-[#C3C3D5] to-[#A77A95]",
+    light: "bg-[#FAEEE9] text-[#735366]",
   },
   TEACHER: {
     icon: UserCheck,
-    gradient: "from-indigo-500 to-blue-600",
-    light: "bg-indigo-50 text-indigo-700",
+    gradient: "from-[#F5D69B] to-[#D4B87A]",
+    light: "bg-[#FAEEE9] text-[#735366]",
   },
   STUDENT: {
     icon: GraduationCap,
-    gradient: "from-fuchsia-500 to-pink-600",
-    light: "bg-fuchsia-50 text-fuchsia-700",
+    gradient: "from-[#C3C3D5] to-[#735366]",
+    light: "bg-[#FAEEE9] text-[#735366]",
   },
   PARENT: {
     icon: Users,
-    gradient: "from-purple-500 to-violet-600",
-    light: "bg-purple-50 text-purple-700",
+    gradient: "from-[#A77A95] to-[#735366]",
+    light: "bg-[#FAEEE9] text-[#735366]",
   },
 };
 
@@ -62,15 +65,43 @@ function Dashboard() {
   const user = getCurrentUser();
   const config = getRoleConfig();
   const displayOrder = getRequestDisplayOrder();
-  const [groupedRequests, setGroupedRequests] = useState([]);
+  const [pendingCounts, setPendingCounts] = useState({});
+  const [recentRequests, setRecentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-        const data = await fetchAllViewableRequests(undefined, getViewRoles());
-        setGroupedRequests(data);
+        const viewRoles = getViewRoles();
+
+        // Initial stage: no role → counts only
+        const counts = await fetchPendingCounts(viewRoles);
+        setPendingCounts(counts);
+
+        // Then fetch data by role only for roles that have pending
+        const rolesWithPending = viewRoles.filter(
+          (role) => (counts[role]?.REQUESTED || 0) > 0
+        );
+
+        if (rolesWithPending.length) {
+          const groups = await fetchAllViewableRequests(
+            undefined,
+            rolesWithPending
+          );
+          const recent = groups
+            .flatMap(({ role, users }) =>
+              users.map((requestUser) => ({
+                ...requestUser,
+                role: requestUser.role || role,
+                actionable: canActOnRole(role),
+              }))
+            )
+            .slice(0, 5);
+          setRecentRequests(recent);
+        } else {
+          setRecentRequests([]);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -82,37 +113,20 @@ function Dashboard() {
   }, []);
 
   const stats = useMemo(() => {
-    const groupMap = new Map(
-      groupedRequests.map(({ role, users }) => [role, users])
-    );
-
     return displayOrder.map((role) => ({
       role,
       title: ROLE_LABELS[role] || role,
-      count: groupMap.get(role)?.length || 0,
+      count: pendingCounts[role]?.REQUESTED || 0,
       actionable: canActOnRole(role),
-      users: groupMap.get(role) || [],
       meta: ROLE_META[role] || ROLE_META.SCHOOL_ADMIN,
     }));
-  }, [groupedRequests, displayOrder]);
+  }, [pendingCounts, displayOrder]);
 
   const totalPending = stats.reduce((sum, item) => sum + item.count, 0);
   const actionablePending = stats
     .filter((item) => item.actionable)
     .reduce((sum, item) => sum + item.count, 0);
   const viewOnlyPending = totalPending - actionablePending;
-
-  const recentRequests = useMemo(() => {
-    return stats
-      .flatMap(({ role, users, actionable }) =>
-        users.map((requestUser) => ({
-          ...requestUser,
-          role: requestUser.role || role,
-          actionable,
-        }))
-      )
-      .slice(0, 5);
-  }, [stats]);
 
   const today = new Date().toLocaleDateString("en-US", {
     weekday: "long",
@@ -123,14 +137,14 @@ function Dashboard() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <section className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#7F56D9] via-[#6941C6] to-[#53389E] text-white p-6 sm:p-8 shadow-xl">
-        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-12 -left-8 h-36 w-36 rounded-full bg-[#C4B5FD]/20 blur-2xl" />
+      <section className="relative overflow-hidden rounded-2xl bg-linear-to-br from-[#A77A95] via-[#8F6580] to-[#735366] text-white p-6 sm:p-8 shadow-xl">
+        <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-[#F5D69B]/30 blur-2xl" />
+        <div className="absolute -bottom-12 -left-8 h-36 w-36 rounded-full bg-[#C3C3D5]/25 blur-2xl" />
 
         <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur-sm mb-4">
-              <Sparkles size={14} />
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#F5D69B]/25 border border-[#F5D69B]/50 px-3 py-1 text-xs font-medium text-[#FAEEE9] backdrop-blur-sm mb-4">
+              <Sparkles size={14} className="text-[#F5D69B]" />
               {config.portalTitle}
             </div>
 
@@ -157,13 +171,13 @@ function Dashboard() {
                 </>
               )}
             </div>
-            <div className="rounded-xl bg-white/15 backdrop-blur-md border border-white/20 p-4">
+            <div className="rounded-xl bg-white/15 backdrop-blur-md border border-[#F5D69B]/35 p-4">
               {loading ? (
                 <StatSkeleton />
               ) : (
                 <>
-                  <p className="text-xs sm:text-sm text-white/80">Needs Action</p>
-                  <p className="text-3xl sm:text-4xl font-bold mt-1">
+                  <p className="text-xs sm:text-sm text-[#FAEEE9]">Needs Action</p>
+                  <p className="text-3xl sm:text-4xl font-bold mt-1 text-[#F5D69B]">
                     {actionablePending}
                   </p>
                 </>
@@ -177,9 +191,9 @@ function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-medium text-slate-500">Action Required</p>
-            <ShieldCheck size={20} className="text-[#7F56D9]" />
+            <ShieldCheck size={20} className="text-[#A77A95]" />
           </div>
-          <p className="text-3xl font-bold text-[#7F56D9]">
+          <p className="text-3xl font-bold text-[#A77A95]">
             {loading ? "..." : actionablePending}
           </p>
           <p className="text-xs text-slate-500 mt-2">
@@ -203,7 +217,7 @@ function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-medium text-slate-500">All Categories</p>
-            <Clock size={20} className="text-[#6941C6]" />
+            <Clock size={20} className="text-[#8F6580]" />
           </div>
           <p className="text-3xl font-bold text-slate-800">
             {loading ? "..." : stats.length}
@@ -227,7 +241,7 @@ function Dashboard() {
             </div>
             <Link
               to="/admin/requests"
-              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-[#7F56D9] hover:text-[#6941C6] transition"
+              className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-[#A77A95] hover:text-[#8F6580] transition"
             >
               View all
               <ArrowRight size={16} />
@@ -248,7 +262,7 @@ function Dashboard() {
                   to="/admin/requests"
                   className={`group relative overflow-hidden rounded-2xl bg-white border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 ${
                     card.actionable
-                      ? "border-[#C4B5FD] shadow-[0_8px_30px_rgba(127,86,217,0.12)]"
+                      ? "border-[#C3C3D5] shadow-[0_8px_30px_rgba(167,122,149,0.18)]"
                       : "border-slate-100 shadow-sm"
                   }`}
                 >
@@ -267,7 +281,7 @@ function Dashboard() {
                       <span
                         className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
                           card.actionable
-                            ? "bg-[#F3E8FF] text-[#7F56D9]"
+                            ? "bg-[#FAEEE9] text-[#A77A95]"
                             : "bg-slate-100 text-slate-500"
                         }`}
                       >
@@ -293,7 +307,7 @@ function Dashboard() {
                       </div>
                     </div>
 
-                    <p className="mt-4 text-xs font-medium text-[#7F56D9] opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="mt-4 text-xs font-medium text-[#A77A95] opacity-0 group-hover:opacity-100 transition-opacity">
                       Open requests list →
                     </p>
                   </div>
@@ -328,7 +342,7 @@ function Dashboard() {
                     key={requestUser._id}
                     className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50/80 p-3"
                   >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F3E8FF] text-[#7F56D9] font-semibold text-sm">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FAEEE9] text-[#A77A95] font-semibold text-sm">
                       {requestUser.firstName?.[0]}
                       {requestUser.lastName?.[0] || ""}
                     </div>
@@ -343,7 +357,7 @@ function Dashboard() {
                     <span
                       className={`shrink-0 text-[10px] font-semibold px-2 py-1 rounded-full ${
                         requestUser.actionable
-                          ? "bg-[#EDE9FE] text-[#6941C6]"
+                          ? "bg-[#FAEEE9] text-[#8F6580]"
                           : "bg-slate-200 text-slate-600"
                       }`}
                     >
@@ -360,15 +374,15 @@ function Dashboard() {
 
             <Link
               to="/admin/requests"
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#E9D5FF] bg-[#FAF5FF] py-2.5 text-sm font-semibold text-[#6941C6] hover:bg-[#F3E8FF] transition"
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#C3C3D5] bg-[#FAEEE9] py-2.5 text-sm font-semibold text-[#8F6580] hover:bg-[#FAEEE9] transition"
             >
               Manage all requests
               <ArrowRight size={16} />
             </Link>
           </div>
 
-          <div className="bg-linear-to-br from-[#FAF5FF] to-white rounded-2xl border border-[#E9D5FF] p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-[#2E1065]">
+          <div className="bg-linear-to-br from-[#FAEEE9] to-white rounded-2xl border border-[#C3C3D5] p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-[#735366]">
               Your Permissions
             </h2>
             <ul className="mt-4 space-y-3">
@@ -380,7 +394,7 @@ function Dashboard() {
                   <span className="text-slate-700">{card.title}</span>
                   <span
                     className={`font-semibold ${
-                      card.actionable ? "text-[#7F56D9]" : "text-slate-400"
+                      card.actionable ? "text-[#A77A95]" : "text-slate-400"
                     }`}
                   >
                     {card.actionable ? "Approve / Reject" : "View only"}

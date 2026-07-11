@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
+  BookOpen,
   Building2,
   ClipboardList,
   GraduationCap,
@@ -37,6 +38,12 @@ const NAV_ITEMS = [
     icon: Building2,
     roles: ["SCHOOL_ADMIN"],
   },
+  {
+    to: "/admin/classes",
+    label: "Classes",
+    icon: BookOpen,
+    roles: ["SCHOOL_ADMIN"],
+  },
 ];
 
 function getInitials(firstName = "", lastName = "") {
@@ -65,7 +72,7 @@ function SidebarNav({ onNavigate }) {
           className={({ isActive }) =>
             `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
               isActive
-                ? "bg-white text-[#6941C6] shadow-lg shadow-black/10"
+                ? "bg-white text-[#8F6580] shadow-md"
                 : "text-white/85 hover:bg-white/10 hover:text-white"
             }`
           }
@@ -75,7 +82,7 @@ function SidebarNav({ onNavigate }) {
               <span
                 className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
                   isActive
-                    ? "bg-[#F3E8FF] text-[#7F56D9]"
+                    ? "bg-[#FAEEE9] text-[#A77A95]"
                     : "bg-white/10 text-white group-hover:bg-white/15"
                 }`}
               >
@@ -99,7 +106,7 @@ function UserProfile({ onLogout }) {
     <div className="mt-auto border-t border-white/10 p-4">
       <div className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 p-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#C4B5FD] to-[#7F56D9] text-sm font-bold text-white shadow-md">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#F5D69B] to-[#A77A95] text-sm font-bold text-white shadow-md">
             {getInitials(user?.firstName, user?.lastName)}
           </div>
 
@@ -153,14 +160,14 @@ function AdminLayout() {
       <div className="p-5 pb-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 border border-white/20 shadow-inner">
-              <GraduationCap size={22} className="text-white" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-[#F5D69B] to-[#A77A95] border border-[#F5D69B]/50 shadow-inner">
+              <GraduationCap size={22} className="text-[#735366]" />
             </div>
             <div className="min-w-0">
               <p className="text-lg font-bold text-white leading-tight truncate">
                 Edvora
               </p>
-              <p className="text-[11px] text-white/60 truncate">{portalTitle}</p>
+              <p className="text-[11px] text-[#F5D69B]/90 truncate">{portalTitle}</p>
             </div>
           </div>
 
@@ -184,22 +191,22 @@ function AdminLayout() {
   );
 
   return (
-    <div className="h-screen overflow-hidden bg-[#F4F2FF] flex flex-col min-[1024px]:flex-row">
+    <div className="h-screen overflow-hidden bg-[#FAEEE9] flex flex-col min-[1024px]:flex-row">
       {/* Mobile header */}
-      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-[#E9D5FF] shadow-sm min-[1024px]:hidden">
+      <header className="sticky top-0 z-30 bg-white border-b border-[#C3C3D5] shadow-sm min-[1024px]:hidden">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#7F56D9] text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#A77A95] text-white">
               <GraduationCap size={18} />
             </div>
-            <span className="text-sm font-bold text-[#2E1065] truncate">
+            <span className="text-sm font-bold text-[#735366] truncate">
               {portalTitle}
             </span>
           </div>
           <button
             type="button"
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg text-[#7F56D9] hover:bg-[#F3E8FF]"
+            className="p-2 rounded-lg text-[#A77A95] hover:bg-[#FAEEE9]"
             aria-label="Open menu"
           >
             <Menu size={22} />
@@ -211,7 +218,7 @@ function AdminLayout() {
       {sidebarOpen && (
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-[#2E1065]/40 backdrop-blur-[2px] min-[1024px]:hidden"
+          className="fixed inset-0 z-40 bg-[#735366]/40 backdrop-blur-[2px] min-[1024px]:hidden"
           onClick={closeSidebar}
           aria-label="Close menu"
         />
@@ -219,13 +226,13 @@ function AdminLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col bg-linear-to-b from-[#53389E] via-[#6941C6] to-[#7F56D9] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:rounded-tr-[28px] min-[1024px]:rounded-br-[28px] min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] min-[1024px]:overflow-hidden ${
+        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:rounded-tr-[28px] min-[1024px]:rounded-br-[28px] min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] min-[1024px]:overflow-hidden ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full min-[1024px]:translate-x-0"
         }`}
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-tr-[28px] rounded-br-[28px]">
-          <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute bottom-20 -left-10 h-32 w-32 rounded-full bg-[#C4B5FD]/20 blur-2xl" />
+          <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-[#F5D69B]/20" />
+          <div className="absolute bottom-20 -left-10 h-32 w-32 rounded-full bg-[#C3C3D5]/20" />
         </div>
 
         <div className="relative flex h-full flex-col">{sidebarContent}</div>

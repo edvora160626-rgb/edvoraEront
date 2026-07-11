@@ -16,15 +16,15 @@ import {
 function variantStyles(variant) {
   switch (variant) {
     case "success":
-      return "bg-[#7F56D9] text-white border border-[#6941C6] shadow-lg";
+      return "bg-[#A77A95] text-white border border-[#8F6580] shadow-lg";
     case "error":
       return "bg-red-600 text-white border border-red-700 shadow-lg";
     case "warning":
-      return "bg-amber-400 text-[#2E1065] border border-amber-500 shadow-lg";
+      return "bg-amber-400 text-[#735366] border border-amber-500 shadow-lg";
     case "info":
-      return "bg-[#C4B5FD] text-[#2E1065] border border-[#8B5CF6] shadow-lg";
+      return "bg-[#C3C3D5] text-[#735366] border border-[#A77A95] shadow-lg";
     default:
-      return "bg-[#2E1065] text-white border border-[#6941C6] shadow-lg";
+      return "bg-[#735366] text-white border border-[#8F6580] shadow-lg";
   }
 }
 

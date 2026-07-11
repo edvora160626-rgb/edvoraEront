@@ -4,57 +4,54 @@ import { getCurrentUser, getSchoolId } from "./auth";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:4001";
 const CACHE_TTL_MS = 60_000;
 
-export const DEPARTMENT_STATUSES = [
-  { value: "ACTIVE", label: "Active" },
-  { value: "INACTIVE", label: "Inactive" },
-];
-
-let deptCache = new Map();
-let deptInflight = new Map();
+let classCache = new Map();
+let classInflight = new Map();
 
 function cacheKey(schoolId, status) {
   return `${schoolId || ""}:${status || "ACTIVE"}`;
 }
 
-export function clearDepartmentsCache() {
-  deptCache.clear();
+export function clearClassesCache() {
+  classCache.clear();
 }
 
-export async function createDepartment(payload) {
+export async function addClass({ className, section, classTeacherId }) {
   const schoolId = getSchoolId();
   const createdBy = getCurrentUser()?._id;
 
-  const { data } = await axios.post(`${API_BASE}/department/createDepartment`, {
-    ...payload,
+  const { data } = await axios.post(`${API_BASE}/class/addClasses`, {
     schoolId,
+    className: className.trim(),
+    section: section.trim().toUpperCase(),
+    classTeacherId: classTeacherId || null,
     createdBy,
   });
 
-  clearDepartmentsCache();
+  clearClassesCache();
   return data?.data;
 }
 
-export async function getDepartmentsByStatus(status = "ACTIVE") {
+export async function getClassesByStatus(status = "ACTIVE") {
   const schoolId = getSchoolId();
   const key = cacheKey(schoolId, status);
 
-  const cached = deptCache.get(key);
+  const cached = classCache.get(key);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return cached.data;
   }
 
-  if (deptInflight.has(key)) {
-    return deptInflight.get(key);
+  if (classInflight.has(key)) {
+    return classInflight.get(key);
   }
 
   const promise = (async () => {
     const { data } = await axios.post(
-      `${API_BASE}/department/getActiveDepartmentsBySchool`,
+      `${API_BASE}/class/getActiveClassesBySchool`,
       { schoolId, status }
     );
 
     const result = {
-      totalDepartments: data?.totalDepartments || 0,
+      totalClasses: data?.totalClasses || 0,
       counts: {
         ACTIVE: data?.counts?.ACTIVE || 0,
         INACTIVE: data?.counts?.INACTIVE || 0,
@@ -63,51 +60,51 @@ export async function getDepartmentsByStatus(status = "ACTIVE") {
       data: data?.data || [],
     };
 
-    deptCache.set(key, { data: result, at: Date.now() });
+    classCache.set(key, { data: result, at: Date.now() });
     return result;
   })().finally(() => {
-    deptInflight.delete(key);
+    classInflight.delete(key);
   });
 
-  deptInflight.set(key, promise);
+  classInflight.set(key, promise);
   return promise;
 }
 
-/** @deprecated Prefer getDepartmentsByStatus("ACTIVE") */
-export async function getActiveDepartments() {
-  return getDepartmentsByStatus("ACTIVE");
+/** @deprecated Prefer getClassesByStatus("ACTIVE") */
+export async function getActiveClasses() {
+  return getClassesByStatus("ACTIVE");
 }
 
-export async function getDepartmentsCount() {
+export async function getClassesCount() {
   const schoolId = getSchoolId();
   const key = cacheKey(schoolId, "COUNT");
 
-  const cached = deptCache.get(key);
+  const cached = classCache.get(key);
   if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
     return cached.data;
   }
-  if (deptInflight.has(key)) return deptInflight.get(key);
+  if (classInflight.has(key)) return classInflight.get(key);
 
   const promise = (async () => {
     const { data } = await axios.post(
-      `${API_BASE}/department/getActiveDepartmentsBySchool`,
+      `${API_BASE}/class/getActiveClassesBySchool`,
       { schoolId, flag: "COUNT" }
     );
 
     const result = {
-      totalDepartments: data?.totalDepartments || 0,
+      totalClasses: data?.totalClasses || 0,
       counts: {
         ACTIVE: data?.counts?.ACTIVE || 0,
         INACTIVE: data?.counts?.INACTIVE || 0,
       },
     };
 
-    deptCache.set(key, { data: result, at: Date.now() });
+    classCache.set(key, { data: result, at: Date.now() });
     return result;
   })().finally(() => {
-    deptInflight.delete(key);
+    classInflight.delete(key);
   });
 
-  deptInflight.set(key, promise);
+  classInflight.set(key, promise);
   return promise;
 }

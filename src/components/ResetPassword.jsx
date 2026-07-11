@@ -101,19 +101,19 @@ function ResetPassword() {
         Almost done
       </p>
 
-      <h1 className="text-2xl sm:text-[28px] font-bold text-[#2E1065] mb-4">
+      <h1 className="text-2xl sm:text-[28px] font-bold text-[#735366] mb-4">
         New password
       </h1>
 
       <p className="text-[13px] sm:text-[14px] text-[#667085] mb-6">
         Create a new password for{" "}
-        <span className="font-semibold text-[#7F56D9] break-all">{email}</span>
+        <span className="font-semibold text-[#A77A95] break-all">{email}</span>
       </p>
 
       <div className="relative mb-4">
         <Lock
           size={18}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7F56D9]"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A77A95]"
         />
         <input
           type={showPassword ? "text" : "password"}
@@ -126,7 +126,7 @@ function ResetPassword() {
           className={`w-full h-[48px] rounded-xl border bg-white pl-12 pr-12 text-[14px] outline-none ${
             passwordError
               ? "border-red-500 focus:border-red-500"
-              : "border-[#D0D5DD] focus:border-[#7F56D9]"
+              : "border-[#D0D5DD] focus:border-[#A77A95]"
           }`}
         />
         <button
@@ -146,7 +146,7 @@ function ResetPassword() {
       <div className="relative mb-4">
         <Lock
           size={18}
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7F56D9]"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A77A95]"
         />
         <input
           type={showConfirm ? "text" : "password"}
@@ -159,7 +159,7 @@ function ResetPassword() {
           className={`w-full h-[48px] rounded-xl border bg-white pl-12 pr-12 text-[14px] outline-none ${
             confirmError || mismatch
               ? "border-red-500 focus:border-red-500"
-              : "border-[#D0D5DD] focus:border-[#7F56D9]"
+              : "border-[#D0D5DD] focus:border-[#A77A95]"
           }`}
         />
         <button
@@ -182,7 +182,7 @@ function ResetPassword() {
         type="button"
         disabled={submitting || !email}
         onClick={handleSubmit}
-        className="w-full h-[48px] rounded-xl bg-[#7F56D9] hover:bg-[#6941C6] text-white font-semibold transition disabled:opacity-60"
+        className="w-full h-[48px] rounded-xl bg-[#A77A95] hover:bg-[#8F6580] text-white font-semibold transition disabled:opacity-60"
       >
         {submitting ? "Updating..." : "Update Password"}
       </button>
@@ -191,7 +191,7 @@ function ResetPassword() {
         <button
           type="button"
           onClick={() => navigate("/")}
-          className="font-semibold text-[#7F56D9] hover:text-[#6941C6]"
+          className="font-semibold text-[#A77A95] hover:text-[#8F6580]"
         >
           Back to login
         </button>

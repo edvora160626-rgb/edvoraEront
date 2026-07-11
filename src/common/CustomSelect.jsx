@@ -7,11 +7,11 @@ const customStyles = {
     height: "38px",
     borderRadius: "8px",
     borderColor: state.isFocused
-      ? "#8B5CF6"
+      ? "#A77A95"
       : "#D0D5DD",
     boxShadow: "none",
     "&:hover": {
-      borderColor: "#8B5CF6",
+      borderColor: "#A77A95",
     },
   }),
 
@@ -47,9 +47,9 @@ const customStyles = {
     ...provided,
 
     backgroundColor: state.isSelected
-      ? "#8B5CF6"
+      ? "#A77A95"
       : state.isFocused
-      ? "#E9D5FF"
+      ? "#C3C3D5"
       : "#FFFFFF",
 
     color: state.isSelected
