@@ -7,7 +7,9 @@ import {
   isFetchableRole,
 } from "./rolePermissions";
 
-const API_BASE = "http://localhost:4001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
+const LIST_CACHE_TTL_MS = 30_000; // 30 seconds
 
 export const REQUEST_STATUSES = [
   { id: "REQUESTED", label: "Pending" },
