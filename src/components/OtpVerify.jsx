@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthShell from "../common/AuthShell";
 
-const API_BASE = "http://localhost:4001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const OTP_LENGTH = 6;
 
 const maskEmail = (email = "") => {

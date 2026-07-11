@@ -5,7 +5,7 @@ import CustomDatePicker from "../common/CustomDatePicker";
 import axios from "axios";
 import { openSnackbar } from "../common/snackbar/snackbar";
 
-const API_BASE = "http://localhost:4001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 function RegisterModal({ onClose }) {
   const [userType, setUserType] = useState("");

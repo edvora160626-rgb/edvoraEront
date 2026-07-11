@@ -5,7 +5,7 @@ import axios from "axios";
 import { openSnackbar } from "../common/snackbar/snackbar";
 import AuthShell from "../common/AuthShell";
 
-const API_BASE = "http://localhost:4001";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 function ResetPassword() {
   const { state } = useLocation();
