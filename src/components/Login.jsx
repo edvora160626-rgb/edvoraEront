@@ -1,21 +1,49 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import AuthShell from "../common/AuthShell";
+import EdvoraLoader from "../common/EdvoraLoader";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
 import { openSnackbar } from "../common/snackbar/snackbar";
+import {
+  clearAuthError,
+  loginUser,
+  resetAuthStatus,
+} from "../redux/slices/authSlice";
 
 const RegisterModal = lazy(() => import("../components/Register"));
 
 function Login() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { status, error, isLoggedIn } = useSelector((state) => state.auth);
+
   const [showRegister, setShowRegister] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({
     emailid: "",
     password: "",
   });
-  const navigate = useNavigate();
+
+  const loading = status === "loading";
+
+  useEffect(() => {
+    if (isLoggedIn && status === "succeeded") {
+      navigate("/admin/dashboard");
+      dispatch(resetAuthStatus());
+    }
+  }, [isLoggedIn, status, navigate, dispatch]);
+
+  useEffect(() => {
+    if (status === "failed" && error) {
+      openSnackbar({
+        message: error,
+        variant: "error",
+      });
+      dispatch(clearAuthError());
+      dispatch(resetAuthStatus());
+    }
+  }, [status, error, dispatch]);
 
   const handleChange = (e) => {
     setLoginData((prev) => ({
@@ -24,42 +52,20 @@ function Login() {
     }));
   };
 
-  const handleLogin = async () => {
-    try {
-      if (!loginData.emailid || !loginData.password) {
-        return openSnackbar({
-          message: "Please enter email and password",
-          variant: "warning",
-        });
-      }
-
-      setLoading(true);
-
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/auth/login`,
-        {
-          emailid: loginData.emailid,
-          password: loginData.password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      if (data.success) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        navigate("/admin/dashboard");
-      }
-    } catch (error) {
-      console.error(error);
-      openSnackbar({
-        message: error?.response?.data?.message || "Login Failed",
-        variant: "error",
+  const handleLogin = () => {
+    if (!loginData.emailid || !loginData.password) {
+      return openSnackbar({
+        message: "Please enter email and password",
+        variant: "warning",
       });
-    } finally {
-      setLoading(false);
     }
+
+    dispatch(
+      loginUser({
+        emailid: loginData.emailid,
+        password: loginData.password,
+      })
+    );
   };
 
   return (
@@ -162,18 +168,7 @@ function Login() {
         </p>
       </AuthShell>
 
-      {loading && (
-        <div
-          className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-[#FAEEE9]/55"
-          aria-live="polite"
-          aria-busy="true"
-        >
-          <div className="login-loader" />
-          <p className="mt-8 text-sm font-medium text-[#735366]">
-            Signing you in…
-          </p>
-        </div>
-      )}
+      {loading && <EdvoraLoader overlay message="Signing you in…" />}
 
       {showRegister && (
         <Suspense fallback={null}>

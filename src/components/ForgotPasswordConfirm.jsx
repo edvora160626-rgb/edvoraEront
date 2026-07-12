@@ -4,6 +4,7 @@ import { Mail } from "lucide-react";
 import axios from "axios";
 import { openSnackbar } from "../common/snackbar/snackbar";
 import AuthShell from "../common/AuthShell";
+import EdvoraLoader from "../common/EdvoraLoader";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -73,7 +74,8 @@ function ForgotPasswordConfirm() {
   const maskedEmail = email.trim() ? maskEmail(email.trim()) : "";
 
   return (
-    <AuthShell>
+    <>
+    <AuthShell className={sending ? "blur-sm" : ""}>
       <p className="text-[13px] text-[#667085] mb-2">
         Having trouble with your password?
       </p>
@@ -129,6 +131,8 @@ function ForgotPasswordConfirm() {
         </button>
       </p>
     </AuthShell>
+    {sending && <EdvoraLoader overlay message="Sending OTP…" />}
+    </>
   );
 }
 

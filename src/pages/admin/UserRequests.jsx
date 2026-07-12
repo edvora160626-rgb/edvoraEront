@@ -15,6 +15,7 @@ import {
   getStatusLabel,
   updateRequestStatus,
 } from "../../utils/requestsApi";
+import EdvoraLoader from "../../common/EdvoraLoader";
 import { openSnackbar } from "../../common/snackbar/snackbar";
 
 function StatusBadge({ status }) {
@@ -48,6 +49,14 @@ function DetailRow({ label, value }) {
   );
 }
 
+function getClassDisplayName(grade) {
+  if (!grade) return "";
+  if (typeof grade === "object") {
+    return grade.className || "";
+  }
+  return "";
+}
+
 function getRoleSpecificDetails(user) {
   const role = user.role;
 
@@ -74,7 +83,7 @@ function getRoleSpecificDetails(user) {
     return [
       { label: "Admission No.", value: user.admissionNumber },
       { label: "Roll Number", value: user.rollNumber },
-      { label: "Grade", value: user.grade },
+      { label: "Class", value: getClassDisplayName(user.grade) },
       { label: "Section", value: user.section },
     ];
   }
@@ -152,7 +161,7 @@ function RequestDetailModal({ user, onClose, onUpdated }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center shrink-0"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center shrink-0"
             aria-label="Close"
           >
             <X size={18} />
@@ -222,7 +231,7 @@ function RequestDetailModal({ user, onClose, onUpdated }) {
                 onClick={() => handleUpdate("INACTIVE")}
                 className="px-4 h-[42px] rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold disabled:opacity-60"
               >
-                {submitting ? "Please wait..." : "Reject"}
+                Reject
               </button>
               <button
                 type="button"
@@ -230,7 +239,7 @@ function RequestDetailModal({ user, onClose, onUpdated }) {
                 onClick={() => handleUpdate("ACTIVE")}
                 className="px-4 h-[42px] rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-semibold disabled:opacity-60"
               >
-                {submitting ? "Please wait..." : "Accept"}
+                Accept
               </button>
             </>
           ) : (
@@ -244,6 +253,7 @@ function RequestDetailModal({ user, onClose, onUpdated }) {
           )}
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Updating request…" />}
     </div>
   );
 }
@@ -503,7 +513,7 @@ function UserRequests() {
       </div>
 
       {loading ? (
-        <p className="text-center text-slate-500 py-12">Loading requests...</p>
+        <EdvoraLoader message="Loading requests…" />
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-3 mb-4">

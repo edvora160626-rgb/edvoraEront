@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthShell from "../common/AuthShell";
+import EdvoraLoader from "../common/EdvoraLoader";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 const OTP_LENGTH = 6;
@@ -141,7 +142,8 @@ function OtpVerify() {
   };
 
   return (
-    <AuthShell>
+    <>
+    <AuthShell className={verifying ? "blur-sm" : ""}>
       <p className="text-[13px] text-[#667085] mb-2">
         Verify your identity
       </p>
@@ -225,6 +227,8 @@ function OtpVerify() {
         </button>
       </p>
     </AuthShell>
+    {verifying && <EdvoraLoader overlay message="Verifying OTP…" />}
+    </>
   );
 }
 

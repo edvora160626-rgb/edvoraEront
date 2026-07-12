@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Building2, Plus, X, Hash, Mail, Phone, DoorClosed } from "lucide-react";
 import CustomSelect from "../../common/CustomSelect";
+import EdvoraLoader from "../../common/EdvoraLoader";
 import { openSnackbar } from "../../common/snackbar/snackbar";
 import {
   createDepartment,
@@ -94,7 +95,7 @@ function AddDepartmentModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
             aria-label="Close"
           >
             <X size={18} />
@@ -285,6 +286,7 @@ function AddDepartmentModal({ onClose, onCreated }) {
           </button>
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Creating department…" />}
     </div>
   );
 }
@@ -457,9 +459,7 @@ function Departments() {
       </div>
 
       {loading ? (
-        <p className="text-center text-slate-500 py-12">
-          Loading departments...
-        </p>
+        <EdvoraLoader message="Loading departments…" />
       ) : departments.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-10 text-center border border-slate-100">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAEEE9] text-[#A77A95]">
