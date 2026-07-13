@@ -12,6 +12,9 @@ import {
 } from "lucide-react";
 import { getCurrentUser, getUserRole } from "../../utils/auth";
 import { getRoleConfig } from "../../utils/rolePermissions";
+import LogoutModal from "../../common/LogoutModal";
+import { useDispatch } from "react-redux";
+import { logoutUser } from "../../redux/slices/authSlice";
 
 const ROLE_DISPLAY = {
   SUPER_ADMIN: "Principal",
@@ -133,7 +136,9 @@ function UserProfile({ onLogout }) {
 
 function AdminLayout() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const { portalTitle } = getRoleConfig();
 
   useEffect(() => {
@@ -149,9 +154,13 @@ function AdminLayout() {
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogoutClick = () => {
+    setLogoutModalOpen(true);
+  };
+
+  const handleLogoutConfirm = async () => {
+    await dispatch(logoutUser());
+    setLogoutModalOpen(false);
     navigate("/");
   };
 
@@ -186,7 +195,7 @@ function AdminLayout() {
         <SidebarNav onNavigate={closeSidebar} />
       </div>
 
-      <UserProfile onLogout={handleLogout} />
+      <UserProfile onLogout={handleLogoutClick} />
     </>
   );
 
@@ -241,6 +250,16 @@ function AdminLayout() {
       <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 min-[1024px]:p-8 min-[1024px]:pr-6 min-w-0">
         <Outlet />
       </main>
+
+      <LogoutModal
+        open={logoutModalOpen}
+        title="Logout Confirmation"
+        description="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setLogoutModalOpen(false)}
+      />
     </div>
   );
 }

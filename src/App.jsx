@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import DocumentSeo from "./components/DocumentSeo";
+import EdvoraLoader from "./common/EdvoraLoader";
 import SnackbarContainer from "./common/snackbar/SnackbarContainer";
 
 const Login = lazy(() => import("./components/Login"));
@@ -15,12 +16,13 @@ const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const UserRequests = lazy(() => import("./pages/admin/UserRequests"));
 const Departments = lazy(() => import("./pages/admin/Departments"));
+const DepartmentStaff = lazy(() => import("./pages/admin/DepartmentStaff"));
 const Classes = lazy(() => import("./pages/admin/Classes"));
 
 function RouteFallback() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FAEEE9] text-[#735366] text-sm">
-      Loading…
+    <div className="min-h-screen flex items-center justify-center bg-[#FAEEE9]">
+      <EdvoraLoader message="Loading…" />
     </div>
   );
 }
@@ -44,6 +46,10 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="requests" element={<UserRequests />} />
             <Route path="departments" element={<Departments />} />
+            <Route
+              path="departments/:departmentId"
+              element={<DepartmentStaff />}
+            />
             <Route path="classes" element={<Classes />} />
           </Route>
         </Routes>

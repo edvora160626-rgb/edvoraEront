@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import CustomSelect from "../common/CustomSelect";
 import CustomDatePicker from "../common/CustomDatePicker";
+import EdvoraLoader from "../common/EdvoraLoader";
 import axios from "axios";
 import { openSnackbar } from "../common/snackbar/snackbar";
 
@@ -10,8 +11,10 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 function RegisterModal({ onClose }) {
   const [userType, setUserType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [classOptions, setClassOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
   const [formData, setFormData] = useState({
     schoolId: "",
     role: "",
@@ -112,7 +115,37 @@ function RegisterModal({ onClose }) {
       }
     };
 
+    const loadDepartments = async () => {
+      if (!formData.schoolId) {
+        setDepartmentOptions([]);
+        return;
+      }
+
+      try {
+        const { data } = await axios.post(
+          `${API_BASE}/department/getActiveDepartmentsBySchool`,
+          { schoolId: formData.schoolId, status: "ACTIVE" }
+        );
+
+        const options = (data?.data || []).map((dept) => ({
+          value: dept.departmentName,
+          label: dept.departmentCode
+            ? `${dept.departmentName} (${dept.departmentCode})`
+            : dept.departmentName,
+        }));
+        setDepartmentOptions(options);
+      } catch (error) {
+        setDepartmentOptions([]);
+        openSnackbar({
+          message:
+            error?.response?.data?.message || "Failed to load departments",
+          variant: "error",
+        });
+      }
+    };
+
     loadClasses();
+    loadDepartments();
   }, [formData.schoolId]);
 
   const handleSubmit = async () => {
@@ -138,6 +171,8 @@ function RegisterModal({ onClose }) {
           variant: "warning",
         });
       }
+
+      setSubmitting(true);
 
       const payload = {
         schoolId: formData.schoolId,
@@ -175,9 +210,20 @@ function RegisterModal({ onClose }) {
 
       // Teacher
       if (formData.role === "TEACHER") {
-        payload.employeeId = formData.employeeId;
+        if (
+          !formData.employeeId?.trim() ||
+          !formData.department ||
+          !formData.qualification?.trim()
+        ) {
+          return openSnackbar({
+            message: "Employee ID, Department and Qualification are required",
+            variant: "warning",
+          });
+        }
+
+        payload.employeeId = formData.employeeId.trim();
         payload.department = formData.department;
-        payload.qualification = formData.qualification;
+        payload.qualification = formData.qualification.trim();
         payload.subjects = formData.subjects;
       }
 
@@ -268,6 +314,8 @@ function RegisterModal({ onClose }) {
           error?.response?.data?.message || "Registration Failed",
         variant: "error",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
   const inputClass =
@@ -305,7 +353,7 @@ function RegisterModal({ onClose }) {
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
           >
             <X size={18} />
           </button>
@@ -409,7 +457,7 @@ function RegisterModal({ onClose }) {
 
               <CustomDatePicker
                 value={formData.dob}
-                placeholder="mm/dd/yyyy"
+                placeholder="dd-MM-yyyy"
                 maxDate={new Date().toISOString().split("T")[0]}
                 onChange={(dateValue) =>
                   setFormData((prev) => ({
@@ -494,6 +542,7 @@ function RegisterModal({ onClose }) {
                     schoolId: option?.value || "",
                     grade: "",
                     section: "",
+                    department: "",
                   }))
                 }
               />
@@ -618,7 +667,9 @@ function RegisterModal({ onClose }) {
             <div className="grid grid-cols-1 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
 
               <div>
-                <label className={labelClass}>Employee ID</label>
+                <label className={labelClass}>
+                  Employee ID <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="employeeId"
                   value={formData.employeeId}
@@ -629,18 +680,38 @@ function RegisterModal({ onClose }) {
               </div>
 
               <div>
-                <label className={labelClass}>Department</label>
-                <input
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  placeholder="Department"
-                  className={inputClass}
+                <label className={labelClass}>
+                  Department <span className="text-red-500">*</span>
+                </label>
+                <CustomSelect
+                  options={departmentOptions}
+                  placeholder={
+                    !formData.schoolId
+                      ? "Select school first"
+                      : departmentOptions.length
+                        ? "Select department"
+                        : "No departments found"
+                  }
+                  isSearchable
+                  isDisabled={!formData.schoolId || departmentOptions.length === 0}
+                  value={
+                    departmentOptions.find(
+                      (option) => option.value === formData.department
+                    ) || null
+                  }
+                  onChange={(option) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      department: option?.value || "",
+                    }))
+                  }
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Qualification</label>
+                <label className={labelClass}>
+                  Qualification <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="qualification"
                   value={formData.qualification}
@@ -805,13 +876,15 @@ function RegisterModal({ onClose }) {
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-6 h-[38px] rounded-md bg-[#A77A95] hover:bg-[#8F6580] text-white text-[13px] font-medium"
+              disabled={submitting}
+              className="px-6 h-[38px] rounded-md bg-[#A77A95] hover:bg-[#8F6580] text-white text-[13px] font-medium disabled:opacity-60"
             >
               Create Account
             </button>
           </div>
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Creating account…" />}
     </div>
   );
 }

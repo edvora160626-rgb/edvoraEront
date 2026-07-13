@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BookOpen, Plus, Users, X } from "lucide-react";
+import EdvoraLoader from "../../common/EdvoraLoader";
 import { openSnackbar } from "../../common/snackbar/snackbar";
 import { addClass, getClassesByStatus } from "../../utils/classesApi";
 
@@ -76,7 +77,7 @@ function AddClassModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
             aria-label="Close"
           >
             <X size={18} />
@@ -134,6 +135,7 @@ function AddClassModal({ onClose, onCreated }) {
           </button>
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Creating class…" />}
     </div>
   );
 }
@@ -308,7 +310,7 @@ function Classes() {
       </div>
 
       {loading ? (
-        <p className="text-center text-slate-500 py-12">Loading classes...</p>
+        <EdvoraLoader message="Loading classes…" />
       ) : classes.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-10 text-center border border-slate-100">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAEEE9] text-[#A77A95]">
