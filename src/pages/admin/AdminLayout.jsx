@@ -1,17 +1,32 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Building2,
+  ClipboardCheck,
   ClipboardList,
   GraduationCap,
   LayoutDashboard,
   LogOut,
   Menu,
+  UserRoundCheck,
   X,
 } from "lucide-react";
 import { getCurrentUser, getUserRole } from "../../utils/auth";
 import { getRoleConfig } from "../../utils/rolePermissions";
+import LogoutModal from "../../common/LogoutModal";
+import EdvoraLoader from "../../common/EdvoraLoader";
+import { useDispatch } from "react-redux";
+import { logoutUser } from "../../redux/slices/authSlice";
+
+const ROUTE_PREFETCH = {
+  "/admin/dashboard": () => import("./Dashboard"),
+  "/admin/requests": () => import("./UserRequests"),
+  "/admin/departments": () => import("./Departments"),
+  "/admin/classes": () => import("./Classes"),
+  "/admin/teacher-attendance": () => import("./TeacherAttendance"),
+  "/admin/student-attendance": () => import("./StudentAttendance"),
+};
 
 const ROLE_DISPLAY = {
   SUPER_ADMIN: "Principal",
@@ -44,6 +59,18 @@ const NAV_ITEMS = [
     icon: BookOpen,
     roles: ["SCHOOL_ADMIN"],
   },
+  {
+    to: "/admin/teacher-attendance",
+    label: "Teacher Attendance",
+    icon: ClipboardCheck,
+    roles: ["SCHOOL_ADMIN"],
+  },
+  {
+    to: "/admin/student-attendance",
+    label: "Student Attendance",
+    icon: UserRoundCheck,
+    roles: ["TEACHER"],
+  },
 ];
 
 function getInitials(firstName = "", lastName = "") {
@@ -68,7 +95,10 @@ function SidebarNav({ onNavigate }) {
         <NavLink
           key={to}
           to={to}
+          end={to.endsWith("/dashboard")}
           onClick={onNavigate}
+          onMouseEnter={() => ROUTE_PREFETCH[to]?.()}
+          onFocus={() => ROUTE_PREFETCH[to]?.()}
           className={({ isActive }) =>
             `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
               isActive
@@ -133,7 +163,9 @@ function UserProfile({ onLogout }) {
 
 function AdminLayout() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const { portalTitle } = getRoleConfig();
 
   useEffect(() => {
@@ -149,9 +181,13 @@ function AdminLayout() {
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogoutClick = () => {
+    setLogoutModalOpen(true);
+  };
+
+  const handleLogoutConfirm = async () => {
+    await dispatch(logoutUser());
+    setLogoutModalOpen(false);
     navigate("/");
   };
 
@@ -186,7 +222,7 @@ function AdminLayout() {
         <SidebarNav onNavigate={closeSidebar} />
       </div>
 
-      <UserProfile onLogout={handleLogout} />
+      <UserProfile onLogout={handleLogoutClick} />
     </>
   );
 
@@ -226,7 +262,7 @@ function AdminLayout() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:rounded-tr-[28px] min-[1024px]:rounded-br-[28px] min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] min-[1024px]:overflow-hidden ${
+        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col overflow-hidden rounded-tr-[28px] rounded-br-[28px] bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full min-[1024px]:translate-x-0"
         }`}
       >
@@ -239,8 +275,26 @@ function AdminLayout() {
       </aside>
 
       <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 min-[1024px]:p-8 min-[1024px]:pr-6 min-w-0">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="flex min-h-[50vh] items-center justify-center">
+              <EdvoraLoader message="Loading…" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
+
+      <LogoutModal
+        open={logoutModalOpen}
+        title="Logout Confirmation"
+        description="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setLogoutModalOpen(false)}
+      />
     </div>
   );
 }

@@ -21,6 +21,8 @@ export default defineConfig({
           if (id.includes("axios")) return "http";
           if (id.includes("lucide-react")) return "icons";
           if (id.includes("react-select")) return "select";
+          if (id.includes("@mui") || id.includes("@emotion")) return "mui";
+          if (id.includes("date-fns")) return "dates";
         },
       },
     },

@@ -13,6 +13,7 @@ function cacheKey(schoolId, status) {
 
 export function clearClassesCache() {
   classCache.clear();
+  classInflight.clear();
 }
 
 export async function addClass({ className, section, classTeacherId }) {
@@ -107,4 +108,23 @@ export async function getClassesCount() {
 
   classInflight.set(key, promise);
   return promise;
+}
+
+export async function getStudentsByClass(classId) {
+  const schoolId = getSchoolId();
+
+  if (!classId) {
+    throw new Error("Class ID is required.");
+  }
+
+  const { data } = await axios.post(`${API_BASE}/class/getStudentsByClass`, {
+    classId,
+    schoolId,
+  });
+
+  return {
+    totalStudents: data?.totalStudents || 0,
+    classInfo: data?.data?.class || null,
+    students: data?.data?.students || [],
+  };
 }
