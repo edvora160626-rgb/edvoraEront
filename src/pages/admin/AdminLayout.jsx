@@ -15,18 +15,8 @@ import {
 import { getCurrentUser, getUserRole } from "../../utils/auth";
 import { getRoleConfig } from "../../utils/rolePermissions";
 import LogoutModal from "../../common/LogoutModal";
-import EdvoraLoader from "../../common/EdvoraLoader";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/slices/authSlice";
-
-const ROUTE_PREFETCH = {
-  "/admin/dashboard": () => import("./Dashboard"),
-  "/admin/requests": () => import("./UserRequests"),
-  "/admin/departments": () => import("./Departments"),
-  "/admin/classes": () => import("./Classes"),
-  "/admin/teacher-attendance": () => import("./TeacherAttendance"),
-  "/admin/student-attendance": () => import("./StudentAttendance"),
-};
 
 const ROLE_DISPLAY = {
   SUPER_ADMIN: "Principal",

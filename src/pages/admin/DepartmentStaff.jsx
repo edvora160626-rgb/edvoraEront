@@ -91,30 +91,30 @@ function StaffCard({ staff }) {
 
 function StaffTable({ staff }) {
   return (
-    <div className="w-full min-w-0 max-w-full rounded-xl border border-slate-100 bg-white shadow">
-      <div className="table-scroll w-full max-w-full">
-        <table className="w-full min-w-[960px] border-collapse">
+    <div className="bg-white rounded-xl shadow overflow-hidden border border-slate-100">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[900px]">
           <thead className="bg-slate-100">
             <tr>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Name
               </th>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Employee ID
               </th>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Email
               </th>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Phone
               </th>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Qualification
               </th>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Subjects
               </th>
-              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700 whitespace-nowrap">
+              <th className="p-3 sm:p-4 text-left text-sm font-semibold text-slate-700">
                 Status
               </th>
             </tr>
@@ -244,13 +244,11 @@ function AddStaffModal({
         const result = await getTeachersByDepartment(selectedDepartment.value);
         if (cancelled) return;
 
-        const options = (result.staff || [])
-          .filter((member) => member.status === "ACTIVE")
-          .map((member) => ({
-            value: member._id,
-            label: staffOptionLabel(member),
-            alreadyAssigned: currentStaffIds.has(String(member._id)),
-          }));
+        const options = (result.staff || []).map((member) => ({
+          value: member._id,
+          label: staffOptionLabel(member),
+          alreadyAssigned: currentStaffIds.has(String(member._id)),
+        }));
 
         setStaffOptions(options);
       } catch (error) {
@@ -318,8 +316,8 @@ function AddStaffModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-3 sm:p-4">
-      <div className="w-full max-w-[520px] max-h-[90dvh] bg-white rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
+      <div className="w-full max-w-[520px] bg-white rounded-t-[14px] sm:rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
         <div className="h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between border-b border-gray-200 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FAEEE9] text-[#A77A95]">
@@ -339,7 +337,7 @@ function AddStaffModal({
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5 space-y-4">
+        <div className="px-4 sm:px-6 py-5 space-y-4">
           <div>
             <label className={labelClass}>
               Department <span className="text-red-500">*</span>
@@ -555,7 +553,7 @@ function DepartmentStaff() {
               <StaffCard key={member._id} staff={member} />
             ))}
           </div>
-          <div className="hidden lg:block w-full min-w-0 max-w-full">
+          <div className="hidden lg:block">
             <StaffTable staff={staff} />
           </div>
         </>

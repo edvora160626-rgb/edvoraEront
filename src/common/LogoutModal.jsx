@@ -25,7 +25,7 @@ function LogoutModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="logout-modal-title"
-        className="relative w-full max-w-xs sm:max-w-sm max-h-[90dvh] overflow-y-auto overscroll-contain rounded-xl bg-white shadow-2xl ring-1 ring-black/5"
+        className="relative w-full max-w-xs sm:max-w-sm rounded-xl bg-white shadow-2xl ring-1 ring-black/5"
       >
         <div className="px-4 sm:px-5 pt-5 pb-1 flex flex-col items-center text-center">
           <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#FAEEE9] text-[#A77A95]">

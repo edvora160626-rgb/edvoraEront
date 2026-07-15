@@ -210,15 +210,17 @@ function RegisterModal({ onClose }) {
       // Teacher
       if (formData.role === "TEACHER") {
         if (
+          !formData.employeeId?.trim() ||
           !formData.department ||
           !formData.qualification?.trim()
         ) {
           return openSnackbar({
-            message: "Department and Qualification are required",
+            message: "Employee ID, Department and Qualification are required",
             variant: "warning",
           });
         }
 
+        payload.employeeId = formData.employeeId.trim();
         payload.department = formData.department;
         payload.qualification = formData.qualification.trim();
         payload.subjects = formData.subjects;
@@ -661,6 +663,19 @@ function RegisterModal({ onClose }) {
 
           {userType === "teacher" && (
             <div className="grid grid-cols-1 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
+
+              <div>
+                <label className={labelClass}>
+                  Employee ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="employeeId"
+                  value={formData.employeeId}
+                  onChange={handleChange}
+                  placeholder="Employee ID"
+                  className={inputClass}
+                />
+              </div>
 
               <div>
                 <label className={labelClass}>
