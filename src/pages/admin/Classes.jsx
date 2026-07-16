@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { BookOpen, Plus, Users, X } from "lucide-react";
+import EdvoraLoader from "../../common/EdvoraLoader";
 import { openSnackbar } from "../../common/snackbar/snackbar";
 import { addClass, getClassesByStatus } from "../../utils/classesApi";
 
@@ -61,8 +63,8 @@ function AddClassModal({ onClose, onCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="w-full max-w-[520px] h-auto max-h-[90vh] bg-white rounded-t-[14px] sm:rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-3 sm:p-4">
+      <div className="w-full max-w-[520px] max-h-[90dvh] bg-white rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
         <div className="h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between border-b border-gray-200 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FAEEE9] text-[#A77A95]">
@@ -76,14 +78,14 @@ function AddClassModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
             aria-label="Close"
           >
             <X size={18} />
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-5">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
               <label className={labelClass}>
@@ -134,13 +136,18 @@ function AddClassModal({ onClose, onCreated }) {
           </button>
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Creating class…" />}
     </div>
   );
 }
 
-function ClassCard({ classItem }) {
+function ClassCard({ classItem, onClick }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5 hover:shadow-md transition">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5 hover:border-[#A77A95]/40 hover:shadow-md transition cursor-pointer"
+    >
       <div className="flex items-start gap-3">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FAEEE9] text-[#A77A95]">
           <BookOpen size={20} />
@@ -175,11 +182,12 @@ function ClassCard({ classItem }) {
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
 function Classes() {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [classes, setClasses] = useState([]);
   const [totalClasses, setTotalClasses] = useState(0);
@@ -195,9 +203,22 @@ function Classes() {
         setLoading(true);
         const result = await getClassesByStatus(activeStatus);
         if (cancelled) return;
-        setClasses(result.data);
-        setTotalClasses(result.totalClasses);
-        setCounts(result.counts);
+
+        const list = result.data || [];
+        const nextCounts = {
+          ACTIVE:
+            result.counts?.ACTIVE ||
+            (activeStatus === "ACTIVE" ? list.length : 0),
+          INACTIVE:
+            result.counts?.INACTIVE ||
+            (activeStatus === "INACTIVE" ? list.length : 0),
+        };
+
+        setClasses(list);
+        setTotalClasses(
+          result.totalClasses || nextCounts.ACTIVE + nextCounts.INACTIVE
+        );
+        setCounts(nextCounts);
       } catch (error) {
         if (!cancelled) {
           openSnackbar({
@@ -308,7 +329,7 @@ function Classes() {
       </div>
 
       {loading ? (
-        <p className="text-center text-slate-500 py-12">Loading classes...</p>
+        <EdvoraLoader message="Loading classes…" />
       ) : classes.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-10 text-center border border-slate-100">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAEEE9] text-[#A77A95]">
@@ -329,6 +350,7 @@ function Classes() {
             <ClassCard
               key={classItem._id || `${classItem.className}-${classItem.section}`}
               classItem={classItem}
+              onClick={() => navigate(`/admin/classes/${classItem._id}`)}
             />
           ))}
         </div>

@@ -4,6 +4,7 @@ import { Lock, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import { openSnackbar } from "../common/snackbar/snackbar";
 import AuthShell from "../common/AuthShell";
+import EdvoraLoader from "../common/EdvoraLoader";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
@@ -96,7 +97,8 @@ function ResetPassword() {
   };
 
   return (
-    <AuthShell>
+    <>
+    <AuthShell className={submitting ? "blur-sm" : ""}>
       <p className="text-[13px] text-[#667085] mb-2">
         Almost done
       </p>
@@ -197,6 +199,8 @@ function ResetPassword() {
         </button>
       </p>
     </AuthShell>
+    {submitting && <EdvoraLoader overlay message="Updating password…" />}
+    </>
   );
 }
 

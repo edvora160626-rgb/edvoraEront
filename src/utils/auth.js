@@ -7,6 +7,10 @@ export function getCurrentUser() {
   }
 }
 
+export function getToken() {
+  return localStorage.getItem("token") || "";
+}
+
 export function normalizeRole(role = "") {
   if (role === "PRINCIPAL") return "SUPER_ADMIN";
   return role;
@@ -24,4 +28,8 @@ export function getSchoolId() {
     return schoolId._id?.toString?.() || schoolId.toString?.() || "";
   }
   return String(schoolId);
+}
+
+export function isAuthenticated() {
+  return Boolean(getToken() && getCurrentUser());
 }

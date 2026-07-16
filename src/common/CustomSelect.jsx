@@ -1,17 +1,22 @@
 import Select from "react-select";
 
+const PRIMARY = "#A77A95";
+const PRIMARY_HOVER = "#8F6580";
+const SECONDARY = "#C3C3D5";
+const SECONDARY_SOFT = "#E8E8F0";
+const TEXT = "#735366";
+const BORDER = "#D0D5DD";
+
 const customStyles = {
   control: (provided, state) => ({
     ...provided,
     minHeight: "38px",
     height: "38px",
     borderRadius: "8px",
-    borderColor: state.isFocused
-      ? "#A77A95"
-      : "#D0D5DD",
-    boxShadow: "none",
+    borderColor: state.isFocused ? PRIMARY : BORDER,
+    boxShadow: state.isFocused ? `0 0 0 1px ${PRIMARY}` : "none",
     "&:hover": {
-      borderColor: "#A77A95",
+      borderColor: PRIMARY,
     },
   }),
 
@@ -21,13 +26,40 @@ const customStyles = {
     padding: "0 12px",
   }),
 
+  singleValue: (provided) => ({
+    ...provided,
+    color: TEXT,
+  }),
+
+  placeholder: (provided) => ({
+    ...provided,
+    color: "#98A2B3",
+  }),
+
   input: (provided) => ({
     ...provided,
     margin: "0px",
+    color: TEXT,
   }),
 
   indicatorSeparator: () => ({
     display: "none",
+  }),
+
+  dropdownIndicator: (provided, state) => ({
+    ...provided,
+    color: state.isFocused || state.selectProps.menuIsOpen ? PRIMARY : SECONDARY,
+    "&:hover": {
+      color: PRIMARY,
+    },
+  }),
+
+  clearIndicator: (provided) => ({
+    ...provided,
+    color: SECONDARY,
+    "&:hover": {
+      color: PRIMARY_HOVER,
+    },
   }),
 
   indicatorsContainer: (provided) => ({
@@ -39,24 +71,56 @@ const customStyles = {
     ...provided,
     borderRadius: "12px",
     overflow: "hidden",
-    boxShadow:
-      "0 10px 30px rgba(0,0,0,0.15)",
+    border: `1px solid ${SECONDARY}`,
+    boxShadow: "0 10px 30px rgba(115, 83, 102, 0.15)",
   }),
 
-  option: (provided, state) => ({
+  option: (provided, state) => {
+    const selected = state.isSelected;
+    const hovered = state.isFocused;
+
+    let backgroundColor = "#FFFFFF";
+    let color = TEXT;
+
+    if (selected) {
+      backgroundColor = PRIMARY;
+      color = "#FFFFFF";
+    } else if (hovered) {
+      backgroundColor = SECONDARY;
+      color = TEXT;
+    }
+
+    return {
+      ...provided,
+      backgroundColor,
+      color,
+      cursor: "pointer",
+      transition: "background-color 0.15s ease, color 0.15s ease",
+      ":active": {
+        backgroundColor: selected ? PRIMARY_HOVER : SECONDARY_SOFT,
+        color: selected ? "#FFFFFF" : TEXT,
+      },
+    };
+  },
+
+  multiValue: (provided) => ({
     ...provided,
+    backgroundColor: SECONDARY_SOFT,
+    borderRadius: "6px",
+  }),
 
-    backgroundColor: state.isSelected
-      ? "#A77A95"
-      : state.isFocused
-      ? "#C3C3D5"
-      : "#FFFFFF",
+  multiValueLabel: (provided) => ({
+    ...provided,
+    color: TEXT,
+  }),
 
-    color: state.isSelected
-      ? "#FFFFFF"
-      : "#4C1D95",
-
-    cursor: "pointer",
+  multiValueRemove: (provided) => ({
+    ...provided,
+    color: PRIMARY,
+    ":hover": {
+      backgroundColor: PRIMARY,
+      color: "#FFFFFF",
+    },
   }),
 
   menuPortal: (provided) => ({
