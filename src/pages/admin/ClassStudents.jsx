@@ -18,9 +18,7 @@ import {
   getStudentsByClass,
 } from "../../utils/classesApi";
 
-const labelClass = "block text-[13px] font-semibold text-[#667085] mb-1.5";
-  UserRound,
-} from "lucide-react";
+
 import EdvoraLoader from "../../common/EdvoraLoader";
 import { openSnackbar } from "../../common/snackbar/snackbar";
 import { getStudentsByClass } from "../../utils/classesApi";
