@@ -209,14 +209,19 @@ function RegisterModal({ onClose }) {
 
       // Teacher — staffId is auto-generated from school name on the server
       if (formData.role === "TEACHER") {
-        if (!formData.department || !formData.qualification?.trim()) {
+        if (
+          !formData.employeeId?.trim() ||
+          !formData.department ||
+          !formData.qualification?.trim()
+        ) {
           return openSnackbar({
-            message: "Department and Qualification are required",
+            message: "Employee ID, Department and Qualification are required",
             variant: "warning",
           });
         }
 
-        payload.department = [formData.department];
+        payload.employeeId = formData.employeeId.trim();
+        payload.department = formData.department;
         payload.qualification = formData.qualification.trim();
         payload.subjects = formData.subjects;
       }
@@ -666,6 +671,19 @@ function RegisterModal({ onClose }) {
                 <p className="text-xs text-slate-500 mt-1">
                   Format uses your school name initials, e.g. VVMHS_001
                 </p>
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Employee ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name="employeeId"
+                  value={formData.employeeId}
+                  onChange={handleChange}
+                  placeholder="Employee ID"
+                  className={inputClass}
+                />
               </div>
 
               <div>

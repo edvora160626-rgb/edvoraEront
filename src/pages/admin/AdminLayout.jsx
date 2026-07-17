@@ -19,6 +19,8 @@ import { getRoleConfig } from "../../utils/rolePermissions";
 import EdvoraLoader from "../../common/EdvoraLoader";
 import LogoutModal from "../../common/LogoutModal";
 import ProfileModal from "../../common/ProfileModal";
+import LogoutModal from "../../common/LogoutModal";
+import { useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/slices/authSlice";
 
 const ROLE_DISPLAY = {
@@ -116,6 +118,8 @@ function SidebarNav({ onNavigate, onOpenProfile }) {
           to={to}
           end={to.endsWith("/dashboard")}
           onClick={onNavigate}
+          onMouseEnter={() => ROUTE_PREFETCH[to]?.()}
+          onFocus={() => ROUTE_PREFETCH[to]?.()}
           className={({ isActive }) =>
             `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
               isActive

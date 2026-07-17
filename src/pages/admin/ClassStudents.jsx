@@ -19,6 +19,11 @@ import {
 } from "../../utils/classesApi";
 
 const labelClass = "block text-[13px] font-semibold text-[#667085] mb-1.5";
+  UserRound,
+} from "lucide-react";
+import EdvoraLoader from "../../common/EdvoraLoader";
+import { openSnackbar } from "../../common/snackbar/snackbar";
+import { getStudentsByClass } from "../../utils/classesApi";
 
 function StatusBadge({ status }) {
   const styles = {
@@ -157,196 +162,6 @@ function StudentTable({ students }) {
   );
 }
 
-function AssignStaffModal({
-  classId,
-  currentTeacherId,
-  currentTeacherLabel,
-  onClose,
-  onAssigned,
-}) {
-  const [staffOptions, setStaffOptions] = useState([]);
-  const [loadingStaff, setLoadingStaff] = useState(true);
-  const [selectedStaff, setSelectedStaff] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const isUpdate = Boolean(currentTeacherId);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadStaff = async () => {
-      try {
-        setLoadingStaff(true);
-        const result = await getActiveStaffBySchool();
-        if (cancelled) return;
-
-        const options = (result.staff || []).map((member) => ({
-          value: member._id,
-          label: staffOptionLabel(member),
-        }));
-
-        setStaffOptions(options);
-
-        if (currentTeacherId) {
-          const current = options.find(
-            (option) => String(option.value) === String(currentTeacherId)
-          );
-          if (current) setSelectedStaff(current);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          openSnackbar({
-            message:
-              error?.response?.data?.message || "Failed to load staff list",
-            variant: "error",
-          });
-        }
-      } finally {
-        if (!cancelled) setLoadingStaff(false);
-      }
-    };
-
-    loadStaff();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentTeacherId]);
-
-  const handleSubmit = async () => {
-    if (!selectedStaff?.value) {
-      return openSnackbar({
-        message: "Please select a staff member",
-        variant: "warning",
-      });
-    }
-
-    if (
-      isUpdate &&
-      String(selectedStaff.value) === String(currentTeacherId)
-    ) {
-      return openSnackbar({
-        message: "This staff member is already assigned to this class",
-        variant: "warning",
-      });
-    }
-
-    try {
-      setSubmitting(true);
-      const result = await assignStaffToClass(classId, selectedStaff.value);
-      openSnackbar({
-        message: isUpdate
-          ? "Assigned staff updated successfully"
-          : "Staff assigned to class successfully",
-        variant: "success",
-      });
-      onAssigned?.(result);
-      onClose();
-    } catch (error) {
-      openSnackbar({
-        message:
-          error?.response?.data?.message ||
-          (isUpdate
-            ? "Failed to update assigned staff"
-            : "Failed to assign staff to class"),
-        variant: "error",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="w-full max-w-[520px] bg-white rounded-t-[14px] sm:rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
-        <div className="h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#FAEEE9] text-[#A77A95]">
-              <UserPlus size={18} />
-            </span>
-            <h2 className="text-base sm:text-[18px] font-semibold text-[#111827] truncate">
-              {isUpdate ? "Update Assigned Staff" : "Assign Staff"}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="px-4 sm:px-6 py-5 space-y-4">
-          {currentTeacherLabel ? (
-            <div className="rounded-lg border border-[#E8D5DF] bg-[#FAEEE9] px-3.5 py-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#A77A95]">
-                Currently assigned
-              </p>
-              <p className="mt-1 text-sm font-semibold text-[#735366]">
-                {currentTeacherLabel}
-              </p>
-            </div>
-          ) : null}
-
-          <div>
-            <label className={labelClass}>
-              {isUpdate ? "New staff" : "Staff"}{" "}
-              <span className="text-red-500">*</span>
-            </label>
-            <CustomSelect
-              options={staffOptions}
-              placeholder={
-                loadingStaff
-                  ? "Loading staff…"
-                  : staffOptions.length === 0
-                    ? "No active staff found"
-                    : isUpdate
-                      ? "Select new staff member"
-                      : "Select staff member"
-              }
-              isSearchable
-              isLoading={loadingStaff}
-              isDisabled={loadingStaff || submitting}
-              value={selectedStaff}
-              onChange={(option) => setSelectedStaff(option)}
-            />
-          </div>
-        </div>
-
-        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex justify-end gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 h-[42px] rounded-lg border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={submitting || loadingStaff}
-            className="px-6 h-[42px] rounded-lg bg-[#A77A95] hover:bg-[#8F6580] text-white text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {submitting
-              ? isUpdate
-                ? "Updating…"
-                : "Assigning…"
-              : isUpdate
-                ? "Update Staff"
-                : "Assign Staff"}
-          </button>
-        </div>
-      </div>
-      {submitting && (
-        <EdvoraLoader
-          overlay
-          message={isUpdate ? "Updating staff…" : "Assigning staff…"}
-        />
-      )}
-    </div>
-  );
-}
-
 function ClassStudents() {
   const { classId } = useParams();
   const navigate = useNavigate();
@@ -354,7 +169,6 @@ function ClassStudents() {
   const [classInfo, setClassInfo] = useState(null);
   const [students, setStudents] = useState([]);
   const [totalStudents, setTotalStudents] = useState(0);
-  const [showAssignModal, setShowAssignModal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -389,11 +203,6 @@ function ClassStudents() {
     };
   }, [classId]);
 
-  const assignedTeacherLabel = classInfo?.classTeacher
-    ? staffOptionLabel(classInfo.classTeacher)
-    : null;
-  const hasAssignedStaff = Boolean(classInfo?.classTeacherId);
-
   return (
     <div className="w-full min-w-0 max-w-full">
       <div className="mb-6 sm:mb-8">
@@ -413,36 +222,17 @@ function ClassStudents() {
               <p className="text-sm font-semibold text-[#735366] mt-2">
                 Total students: {loading ? "…" : totalStudents}
               </p>
-              {!loading ? (
-                <p className="text-sm text-slate-500 mt-1">
-                  Assigned staff:{" "}
-                  <span className="font-medium text-[#735366]">
-                    {assignedTeacherLabel || "Not assigned"}
-                  </span>
-                </p>
-              ) : null}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setShowAssignModal(true)}
-              disabled={loading || !classInfo}
-              className="inline-flex items-center gap-2 px-4 h-[42px] rounded-lg bg-[#A77A95] hover:bg-[#8F6580] text-white text-sm font-semibold shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <UserPlus size={16} />
-              {hasAssignedStaff ? "Update Staff" : "Assign Staff"}
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate("/admin/classes")}
-              className="inline-flex items-center gap-2 px-4 h-[42px] rounded-lg bg-[#A77A95] hover:bg-[#8F6580] text-white text-sm font-semibold shadow-sm"
-            >
-              <ArrowLeft size={16} />
-              Back
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/admin/classes")}
+            className="inline-flex items-center gap-2 px-4 h-[42px] rounded-lg bg-[#A77A95] hover:bg-[#8F6580] text-white text-sm font-semibold shadow-sm"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
         </div>
       </div>
 
@@ -469,23 +259,6 @@ function ClassStudents() {
             <StudentTable students={students} />
           </div>
         </>
-      )}
-
-      {showAssignModal && (
-        <AssignStaffModal
-          classId={classId}
-          currentTeacherId={classInfo?.classTeacherId}
-          currentTeacherLabel={assignedTeacherLabel}
-          onClose={() => setShowAssignModal(false)}
-          onAssigned={(result) => {
-            setClassInfo((prev) => ({
-              ...prev,
-              classTeacherId:
-                result?.class?.classTeacherId || result?.classTeacher?._id,
-              classTeacher: result?.classTeacher || null,
-            }));
-          }}
-        />
       )}
     </div>
   );
