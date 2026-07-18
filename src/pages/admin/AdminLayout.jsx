@@ -13,6 +13,7 @@ import {
   UserRoundCheck,
   X,
 } from "lucide-react";
+
 import { useDispatch, useSelector } from "react-redux";
 import { getUserRole } from "../../utils/auth";
 import { getRoleConfig } from "../../utils/rolePermissions";
@@ -117,21 +118,19 @@ function SidebarNav({ onNavigate, onOpenProfile }) {
           end={to.endsWith("/dashboard")}
           onClick={onNavigate}
           className={({ isActive }) =>
-            `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
-              isActive
-                ? "bg-white text-[#8F6580] shadow-md"
-                : "text-white/85 hover:bg-white/10 hover:text-white"
+            `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 ${isActive
+              ? "bg-white text-[#8F6580] shadow-md"
+              : "text-white/85 hover:bg-white/10 hover:text-white"
             }`
           }
         >
           {({ isActive }) => (
             <>
               <span
-                className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
-                  isActive
+                className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${isActive
                     ? "bg-[#FAEEE9] text-[#A77A95]"
                     : "bg-white/10 text-white group-hover:bg-white/15"
-                }`}
+                  }`}
               >
                 <Icon size={18} />
               </span>
@@ -285,9 +284,8 @@ function AdminLayout() {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col overflow-hidden rounded-tr-[28px] rounded-br-[28px] bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full min-[1024px]:translate-x-0"
-        }`}
+        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col overflow-hidden rounded-tr-[28px] rounded-br-[28px] bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] ${sidebarOpen ? "translate-x-0" : "-translate-x-full min-[1024px]:translate-x-0"
+          }`}
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-tr-[28px] rounded-br-[28px]">
           <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-[#F5D69B]/20" />
