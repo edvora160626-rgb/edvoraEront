@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Edvora">
-  <rect width="64" height="64" rx="14" fill="#A77A95"/>
-  <path
-    fill="#F5D69B"
-    d="M32 12c-1.2 0-2.2.7-2.7 1.8L16.8 42.2c-.4.9.2 1.9 1.2 1.9h6.2c.8 0 1.5-.5 1.8-1.2L32 27.4l6 15.5c.3.7 1 1.2 1.8 1.2h6.2c1 0 1.6-1 .1.2-1.9L34.7 13.8C34.2 12.7 33.2 12 32 12z"
-  />
-  <circle cx="32" cy="48" r="3.2" fill="#FAEEE9"/>
-</svg>
