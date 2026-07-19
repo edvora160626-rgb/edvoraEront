@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, Eye, EyeOff } from "lucide-react";
 import CustomSelect from "../common/CustomSelect";
 import CustomDatePicker from "../common/CustomDatePicker";
+import EdvoraLoader from "../common/EdvoraLoader";
 import axios from "axios";
 import { openSnackbar } from "../common/snackbar/snackbar";
 
@@ -10,8 +11,10 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 function RegisterModal({ onClose }) {
   const [userType, setUserType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [schoolOptions, setSchoolOptions] = useState([]);
   const [classOptions, setClassOptions] = useState([]);
+  const [departmentOptions, setDepartmentOptions] = useState([]);
   const [formData, setFormData] = useState({
     schoolId: "",
     role: "",
@@ -33,7 +36,6 @@ function RegisterModal({ onClose }) {
     section: "",
     bloodGroup: "",
 
-    employeeId: "",
     department: "",
     qualification: "",
     subjects: "",
@@ -112,7 +114,37 @@ function RegisterModal({ onClose }) {
       }
     };
 
+    const loadDepartments = async () => {
+      if (!formData.schoolId) {
+        setDepartmentOptions([]);
+        return;
+      }
+
+      try {
+        const { data } = await axios.post(
+          `${API_BASE}/department/getActiveDepartmentsBySchool`,
+          { schoolId: formData.schoolId, status: "ACTIVE" }
+        );
+
+        const options = (data?.data || []).map((dept) => ({
+          value: dept.departmentName,
+          label: dept.departmentCode
+            ? `${dept.departmentName} (${dept.departmentCode})`
+            : dept.departmentName,
+        }));
+        setDepartmentOptions(options);
+      } catch (error) {
+        setDepartmentOptions([]);
+        openSnackbar({
+          message:
+            error?.response?.data?.message || "Failed to load departments",
+          variant: "error",
+        });
+      }
+    };
+
     loadClasses();
+    loadDepartments();
   }, [formData.schoolId]);
 
   const handleSubmit = async () => {
@@ -138,6 +170,8 @@ function RegisterModal({ onClose }) {
           variant: "warning",
         });
       }
+
+      setSubmitting(true);
 
       const payload = {
         schoolId: formData.schoolId,
@@ -173,11 +207,17 @@ function RegisterModal({ onClose }) {
         payload.section = formData.section;
       }
 
-      // Teacher
+      // Teacher — staffId is auto-generated from school name on the server
       if (formData.role === "TEACHER") {
-        payload.employeeId = formData.employeeId;
-        payload.department = formData.department;
-        payload.qualification = formData.qualification;
+        if (!formData.department || !formData.qualification?.trim()) {
+          return openSnackbar({
+            message: "Department and Qualification are required",
+            variant: "warning",
+          });
+        }
+
+        payload.department = [formData.department];
+        payload.qualification = formData.qualification.trim();
         payload.subjects = formData.subjects;
       }
 
@@ -244,7 +284,6 @@ function RegisterModal({ onClose }) {
           grade: "",
           section: "",
 
-          employeeId: "",
           department: "",
           qualification: "",
           subjects: "",
@@ -268,6 +307,8 @@ function RegisterModal({ onClose }) {
           error?.response?.data?.message || "Registration Failed",
         variant: "error",
       });
+    } finally {
+      setSubmitting(false);
     }
   };
   const inputClass =
@@ -295,8 +336,8 @@ function RegisterModal({ onClose }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="w-full max-w-[1024px] h-[100dvh] sm:h-[90vh] bg-white rounded-none sm:rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-3 sm:p-4">
+      <div className="w-full max-w-[1024px] max-h-[90dvh] bg-white rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between border-b border-gray-200 shrink-0">
           <h2 className="text-base sm:text-[18px] font-semibold text-[#111827] truncate pr-2">
@@ -305,14 +346,14 @@ function RegisterModal({ onClose }) {
 
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 sm:py-6">
 
           {/* Row 1 */}
           <div className="grid grid-cols-1 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 gap-4 sm:gap-6">
@@ -409,7 +450,7 @@ function RegisterModal({ onClose }) {
 
               <CustomDatePicker
                 value={formData.dob}
-                placeholder="mm/dd/yyyy"
+                placeholder="dd-MM-yyyy"
                 maxDate={new Date().toISOString().split("T")[0]}
                 onChange={(dateValue) =>
                   setFormData((prev) => ({
@@ -494,6 +535,7 @@ function RegisterModal({ onClose }) {
                     schoolId: option?.value || "",
                     grade: "",
                     section: "",
+                    department: "",
                   }))
                 }
               />
@@ -617,30 +659,48 @@ function RegisterModal({ onClose }) {
           {userType === "teacher" && (
             <div className="grid grid-cols-1 min-[640px]:grid-cols-2 min-[1024px]:grid-cols-3 gap-4 sm:gap-6 mt-6 sm:mt-8">
 
+              <div className="min-[640px]:col-span-2 min-[1024px]:col-span-3 rounded-lg border border-[#E8D5DF] bg-[#FAEEE9] px-3.5 py-3">
+                <p className="text-sm font-semibold text-[#735366]">
+                  Staff ID is generated automatically
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Format uses your school name initials, e.g. VVMHS_001
+                </p>
+              </div>
+
               <div>
-                <label className={labelClass}>Employee ID</label>
-                <input
-                  name="employeeId"
-                  value={formData.employeeId}
-                  onChange={handleChange}
-                  placeholder="Employee ID"
-                  className={inputClass}
+                <label className={labelClass}>
+                  Department <span className="text-red-500">*</span>
+                </label>
+                <CustomSelect
+                  options={departmentOptions}
+                  placeholder={
+                    !formData.schoolId
+                      ? "Select school first"
+                      : departmentOptions.length
+                        ? "Select department"
+                        : "No departments found"
+                  }
+                  isSearchable
+                  isDisabled={!formData.schoolId || departmentOptions.length === 0}
+                  value={
+                    departmentOptions.find(
+                      (option) => option.value === formData.department
+                    ) || null
+                  }
+                  onChange={(option) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      department: option?.value || "",
+                    }))
+                  }
                 />
               </div>
 
               <div>
-                <label className={labelClass}>Department</label>
-                <input
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  placeholder="Department"
-                  className={inputClass}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Qualification</label>
+                <label className={labelClass}>
+                  Qualification <span className="text-red-500">*</span>
+                </label>
                 <input
                   name="qualification"
                   value={formData.qualification}
@@ -805,13 +865,15 @@ function RegisterModal({ onClose }) {
             <button
               type="button"
               onClick={handleSubmit}
-              className="px-6 h-[38px] rounded-md bg-[#A77A95] hover:bg-[#8F6580] text-white text-[13px] font-medium"
+              disabled={submitting}
+              className="px-6 h-[38px] rounded-md bg-[#A77A95] hover:bg-[#8F6580] text-white text-[13px] font-medium disabled:opacity-60"
             >
               Create Account
             </button>
           </div>
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Creating account…" />}
     </div>
   );
 }

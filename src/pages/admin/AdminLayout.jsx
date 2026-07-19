@@ -1,17 +1,25 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Building2,
+  ClipboardCheck,
   ClipboardList,
   GraduationCap,
   LayoutDashboard,
   LogOut,
   Menu,
+  UserRound,
+  UserRoundCheck,
   X,
 } from "lucide-react";
-import { getCurrentUser, getUserRole } from "../../utils/auth";
+import { useDispatch, useSelector } from "react-redux";
+import { getUserRole } from "../../utils/auth";
 import { getRoleConfig } from "../../utils/rolePermissions";
+import EdvoraLoader from "../../common/EdvoraLoader";
+import LogoutModal from "../../common/LogoutModal";
+import ProfileModal from "../../common/ProfileModal";
+import { logoutUser } from "../../redux/slices/authSlice";
 
 const ROLE_DISPLAY = {
   SUPER_ADMIN: "Principal",
@@ -44,22 +52,60 @@ const NAV_ITEMS = [
     icon: BookOpen,
     roles: ["SCHOOL_ADMIN"],
   },
+  {
+    to: "/admin/teacher-attendance",
+    label: "Teacher Attendance",
+    icon: ClipboardCheck,
+    roles: ["SCHOOL_ADMIN"],
+  },
+  {
+    to: "/admin/student-attendance",
+    label: "Student Attendance",
+    icon: UserRoundCheck,
+    roles: ["TEACHER"],
+  },
 ];
 
 function getInitials(firstName = "", lastName = "") {
-  const first = firstName.trim()[0] || "";
-  const last = lastName.trim()[0] || "";
+  const first = String(firstName || "").trim()[0] || "";
+  const last = String(lastName || "").trim()[0] || "";
   return (first + last).toUpperCase() || "U";
 }
 
-function SidebarNav({ onNavigate }) {
+function SidebarNav({ onNavigate, onOpenProfile }) {
   const role = getUserRole();
+  const user = useSelector((state) => state.auth.user);
   const items = NAV_ITEMS.filter(
     (item) => !item.roles || item.roles.includes(role)
   );
+  const displayRole = ROLE_DISPLAY[role] || role;
 
   return (
     <nav className="px-3 space-y-1.5">
+      <button
+        type="button"
+        onClick={onOpenProfile}
+        className="mb-3 flex w-full items-center gap-3 rounded-xl border border-white/15 bg-white/10 px-3 py-3 text-left transition hover:bg-white/15"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#F5D69B] to-[#A77A95] text-sm font-bold text-white shadow-md">
+          {user ? (
+            getInitials(user.firstName, user.lastName)
+          ) : (
+            <UserRound size={18} />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-white truncate">
+            {user
+              ? [user.firstName, user.lastName].filter(Boolean).join(" ")
+              : "Profile"}
+          </span>
+          <span className="block text-xs text-white/65 truncate">
+            {displayRole || "View profile"}
+          </span>
+        </span>
+      </button>
+
       <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-white/50">
         Main Menu
       </p>
@@ -68,6 +114,7 @@ function SidebarNav({ onNavigate }) {
         <NavLink
           key={to}
           to={to}
+          end={to.endsWith("/dashboard")}
           onClick={onNavigate}
           className={({ isActive }) =>
             `group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-all duration-200 ${
@@ -98,7 +145,7 @@ function SidebarNav({ onNavigate }) {
 }
 
 function UserProfile({ onLogout }) {
-  const user = getCurrentUser();
+  const user = useSelector((state) => state.auth.user);
   const role = getUserRole();
   const displayRole = ROLE_DISPLAY[role] || role;
 
@@ -133,7 +180,10 @@ function UserProfile({ onLogout }) {
 
 function AdminLayout() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const { portalTitle } = getRoleConfig();
 
   useEffect(() => {
@@ -149,10 +199,19 @@ function AdminLayout() {
 
   const closeSidebar = () => setSidebarOpen(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+  const handleLogoutClick = () => {
+    setLogoutModalOpen(true);
+  };
+
+  const handleLogoutConfirm = async () => {
+    await dispatch(logoutUser());
+    setLogoutModalOpen(false);
     navigate("/");
+  };
+
+  const handleOpenProfile = () => {
+    setProfileModalOpen(true);
+    closeSidebar();
   };
 
   const sidebarContent = (
@@ -182,17 +241,19 @@ function AdminLayout() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 py-2 overflow-hidden">
-        <SidebarNav onNavigate={closeSidebar} />
+      <div className="flex-1 min-h-0 py-2 overflow-y-auto">
+        <SidebarNav
+          onNavigate={closeSidebar}
+          onOpenProfile={handleOpenProfile}
+        />
       </div>
 
-      <UserProfile onLogout={handleLogout} />
+      <UserProfile onLogout={handleLogoutClick} />
     </>
   );
 
   return (
     <div className="h-screen overflow-hidden bg-[#FAEEE9] flex flex-col min-[1024px]:flex-row">
-      {/* Mobile header */}
       <header className="sticky top-0 z-30 bg-white border-b border-[#C3C3D5] shadow-sm min-[1024px]:hidden">
         <div className="flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2 min-w-0">
@@ -214,7 +275,6 @@ function AdminLayout() {
         </div>
       </header>
 
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <button
           type="button"
@@ -224,9 +284,8 @@ function AdminLayout() {
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:rounded-tr-[28px] min-[1024px]:rounded-br-[28px] min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] min-[1024px]:overflow-hidden ${
+        className={`fixed top-0 left-0 z-50 flex h-full w-[280px] shrink-0 flex-col overflow-hidden rounded-tr-[28px] rounded-br-[28px] bg-linear-to-b from-[#735366] via-[#8F6580] to-[#A77A95] text-white shadow-2xl transition-transform duration-300 ease-in-out min-[1024px]:relative min-[1024px]:z-auto min-[1024px]:translate-x-0 min-[1024px]:my-3 min-[1024px]:ml-3 min-[1024px]:h-[calc(100vh-24px)] ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full min-[1024px]:translate-x-0"
         }`}
       >
@@ -239,8 +298,31 @@ function AdminLayout() {
       </aside>
 
       <main className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 min-[1024px]:p-8 min-[1024px]:pr-6 min-w-0">
-        <Outlet />
+        <Suspense
+          fallback={
+            <div className="flex min-h-[50vh] items-center justify-center">
+              <EdvoraLoader message="Loading…" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
       </main>
+
+      <LogoutModal
+        open={logoutModalOpen}
+        title="Logout Confirmation"
+        description="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setLogoutModalOpen(false)}
+      />
+
+      <ProfileModal
+        open={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+      />
     </div>
   );
 }

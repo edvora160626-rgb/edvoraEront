@@ -13,6 +13,7 @@ function cacheKey(schoolId, status) {
 
 export function clearClassesCache() {
   classCache.clear();
+  classInflight.clear();
 }
 
 export async function addClass({ className, section, classTeacherId }) {
@@ -107,4 +108,59 @@ export async function getClassesCount() {
 
   classInflight.set(key, promise);
   return promise;
+}
+
+export async function getStudentsByClass(classId) {
+  const schoolId = getSchoolId();
+
+  if (!classId) {
+    throw new Error("Class ID is required.");
+  }
+
+  const { data } = await axios.post(`${API_BASE}/class/getStudentsByClass`, {
+    classId,
+    schoolId,
+  });
+
+  return {
+    totalStudents: data?.totalStudents || 0,
+    classInfo: data?.data?.class || null,
+    students: data?.data?.students || [],
+  };
+}
+
+export async function getActiveStaffBySchool() {
+  const schoolId = getSchoolId();
+
+  if (!schoolId) {
+    throw new Error("School ID is missing. Please sign in again.");
+  }
+
+  const { data } = await axios.post(`${API_BASE}/class/getActiveStaffBySchool`, {
+    schoolId,
+  });
+
+  return {
+    totalStaff: data?.totalStaff || 0,
+    staff: data?.data || [],
+  };
+}
+
+export async function assignStaffToClass(classId, teacherId) {
+  const schoolId = getSchoolId();
+  const updatedBy = getCurrentUser()?._id;
+
+  if (!classId || !teacherId) {
+    throw new Error("Class and staff are required.");
+  }
+
+  const { data } = await axios.post(`${API_BASE}/class/assignStaffToClass`, {
+    classId,
+    teacherId,
+    schoolId,
+    updatedBy,
+  });
+
+  clearClassesCache();
+  return data?.data;
 }

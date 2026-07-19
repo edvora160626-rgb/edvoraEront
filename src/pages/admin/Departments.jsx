@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Building2, Plus, X, Hash, Mail, Phone, DoorClosed } from "lucide-react";
 import CustomSelect from "../../common/CustomSelect";
+import EdvoraLoader from "../../common/EdvoraLoader";
 import { openSnackbar } from "../../common/snackbar/snackbar";
 import {
   createDepartment,
@@ -78,8 +80,8 @@ function AddDepartmentModal({ onClose, onCreated }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
-      <div className="w-full max-w-[720px] h-[100dvh] sm:h-auto sm:max-h-[90vh] bg-white rounded-none sm:rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-3 sm:p-4">
+      <div className="w-full max-w-[720px] max-h-[90dvh] bg-white rounded-[14px] shadow-2xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="h-14 sm:h-16 px-4 sm:px-6 flex items-center justify-between border-b border-gray-200 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -94,7 +96,7 @@ function AddDepartmentModal({ onClose, onCreated }) {
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#FF3040] hover:bg-red-600 text-white flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-primary hover:bg-primary-hover text-white flex items-center justify-center"
             aria-label="Close"
           >
             <X size={18} />
@@ -102,7 +104,7 @@ function AddDepartmentModal({ onClose, onCreated }) {
         </div>
 
         {/* Body */}
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-5">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 sm:px-6 py-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>
@@ -285,13 +287,18 @@ function AddDepartmentModal({ onClose, onCreated }) {
           </button>
         </div>
       </div>
+      {submitting && <EdvoraLoader overlay message="Creating department…" />}
     </div>
   );
 }
 
-function DepartmentCard({ department }) {
+function DepartmentCard({ department, onClick }) {
   return (
-    <div className="bg-white rounded-xl shadow p-4 border border-slate-100">
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full text-left bg-white rounded-xl shadow p-4 border border-slate-100 hover:border-[#A77A95]/40 hover:shadow-md transition cursor-pointer"
+    >
       <div className="flex items-start gap-3">
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white"
@@ -324,11 +331,12 @@ function DepartmentCard({ department }) {
           ) : null}
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
 function Departments() {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [totalDepartments, setTotalDepartments] = useState(0);
@@ -457,9 +465,7 @@ function Departments() {
       </div>
 
       {loading ? (
-        <p className="text-center text-slate-500 py-12">
-          Loading departments...
-        </p>
+        <EdvoraLoader message="Loading departments…" />
       ) : departments.length === 0 ? (
         <div className="bg-white rounded-xl shadow p-10 text-center border border-slate-100">
           <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#FAEEE9] text-[#A77A95]">
@@ -480,6 +486,9 @@ function Departments() {
             <DepartmentCard
               key={department._id || department.departmentCode}
               department={department}
+              onClick={() =>
+                navigate(`/admin/departments/${department._id}`)
+              }
             />
           ))}
         </div>

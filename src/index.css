@@ -53,6 +53,35 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Thin scrollbar — hidden until scrolling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+html.is-scrolling,
+html.is-scrolling * {
+  scrollbar-color: rgba(167, 122, 149, 0.55) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 9999px;
+}
+
+html.is-scrolling *::-webkit-scrollbar-thumb {
+  background-color: rgba(167, 122, 149, 0.55);
+}
+
 img,
 svg {
   max-width: 100%;

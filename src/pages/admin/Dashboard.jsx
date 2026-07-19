@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { getCurrentUser } from "../../utils/auth";
+import EdvoraLoader from "../../common/EdvoraLoader";
 import {
   ROLE_LABELS,
   canActOnRole,
@@ -52,15 +53,6 @@ const ROLE_META = {
   },
 };
 
-function StatSkeleton() {
-  return (
-    <div className="animate-pulse">
-      <div className="h-4 w-24 bg-white/30 rounded mb-3" />
-      <div className="h-9 w-16 bg-white/40 rounded" />
-    </div>
-  );
-}
-
 function Dashboard() {
   const user = getCurrentUser();
   const config = getRoleConfig();
@@ -70,46 +62,53 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+
     const load = async () => {
       try {
         setLoading(true);
         const viewRoles = getViewRoles();
-
-        // Initial stage: no role → counts only
         const counts = await fetchPendingCounts(viewRoles);
-        setPendingCounts(counts);
+        if (cancelled) return;
 
-        // Then fetch data by role only for roles that have pending
+        setPendingCounts(counts);
+        setLoading(false);
+
         const rolesWithPending = viewRoles.filter(
           (role) => (counts[role]?.REQUESTED || 0) > 0
         );
 
-        if (rolesWithPending.length) {
-          const groups = await fetchAllViewableRequests(
-            undefined,
-            rolesWithPending
-          );
-          const recent = groups
-            .flatMap(({ role, users }) =>
-              users.map((requestUser) => ({
-                ...requestUser,
-                role: requestUser.role || role,
-                actionable: canActOnRole(role),
-              }))
-            )
-            .slice(0, 5);
-          setRecentRequests(recent);
-        } else {
+        if (!rolesWithPending.length) {
           setRecentRequests([]);
+          return;
         }
+
+        const groups = await fetchAllViewableRequests(
+          undefined,
+          rolesWithPending
+        );
+        if (cancelled) return;
+
+        const recent = groups
+          .flatMap(({ role, users }) =>
+            users.map((requestUser) => ({
+              ...requestUser,
+              role: requestUser.role || role,
+              actionable: canActOnRole(role),
+            }))
+          )
+          .slice(0, 5);
+        setRecentRequests(recent);
       } catch (error) {
         console.error(error);
-      } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const stats = useMemo(() => {
@@ -134,6 +133,10 @@ function Dashboard() {
     day: "numeric",
     year: "numeric",
   });
+
+  if (loading) {
+    return <EdvoraLoader message="Loading dashboard…" />;
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -160,28 +163,16 @@ function Dashboard() {
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 min-w-0 lg:min-w-[320px]">
             <div className="rounded-xl bg-white/15 backdrop-blur-md border border-white/20 p-4">
-              {loading ? (
-                <StatSkeleton />
-              ) : (
-                <>
-                  <p className="text-xs sm:text-sm text-white/80">Total Pending</p>
-                  <p className="text-3xl sm:text-4xl font-bold mt-1">
-                    {totalPending}
-                  </p>
-                </>
-              )}
+              <p className="text-xs sm:text-sm text-white/80">Total Pending</p>
+              <p className="text-3xl sm:text-4xl font-bold mt-1">
+                {totalPending}
+              </p>
             </div>
             <div className="rounded-xl bg-white/15 backdrop-blur-md border border-[#F5D69B]/35 p-4">
-              {loading ? (
-                <StatSkeleton />
-              ) : (
-                <>
-                  <p className="text-xs sm:text-sm text-[#FAEEE9]">Needs Action</p>
-                  <p className="text-3xl sm:text-4xl font-bold mt-1 text-[#F5D69B]">
-                    {actionablePending}
-                  </p>
-                </>
-              )}
+              <p className="text-xs sm:text-sm text-[#FAEEE9]">Needs Action</p>
+              <p className="text-3xl sm:text-4xl font-bold mt-1 text-[#F5D69B]">
+                {actionablePending}
+              </p>
             </div>
           </div>
         </div>
@@ -194,7 +185,7 @@ function Dashboard() {
             <ShieldCheck size={20} className="text-[#A77A95]" />
           </div>
           <p className="text-3xl font-bold text-[#A77A95]">
-            {loading ? "..." : actionablePending}
+            {actionablePending}
           </p>
           <p className="text-xs text-slate-500 mt-2">
             Admin requests you can approve or reject
@@ -207,7 +198,7 @@ function Dashboard() {
             <Eye size={20} className="text-slate-400" />
           </div>
           <p className="text-3xl font-bold text-slate-700">
-            {loading ? "..." : viewOnlyPending}
+            {viewOnlyPending}
           </p>
           <p className="text-xs text-slate-500 mt-2">
             Office, teacher, parent, and student registrations
@@ -220,7 +211,7 @@ function Dashboard() {
             <Clock size={20} className="text-[#8F6580]" />
           </div>
           <p className="text-3xl font-bold text-slate-800">
-            {loading ? "..." : stats.length}
+            {stats.length}
           </p>
           <p className="text-xs text-slate-500 mt-2">
             Request groups shown on your portal
@@ -291,18 +282,18 @@ function Dashboard() {
 
                     <p className="mt-4 text-sm text-slate-500">{card.title}</p>
                     <p className="text-3xl font-bold text-slate-800 mt-1">
-                      {loading ? "..." : card.count}
+                      {card.count}
                     </p>
 
                     <div className="mt-4">
                       <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
                         <span>Share of total pending</span>
-                        <span>{loading ? "..." : `${share}%`}</span>
+                        <span>{`${share}%`}</span>
                       </div>
                       <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
                         <div
                           className={`h-full rounded-full bg-linear-to-r ${card.meta.gradient} transition-all duration-500`}
-                          style={{ width: loading ? "0%" : `${share}%` }}
+                          style={{ width: `${share}%` }}
                         />
                       </div>
                     </div>
@@ -326,16 +317,7 @@ function Dashboard() {
               Latest registration requests in your school
             </p>
 
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((item) => (
-                  <div
-                    key={item}
-                    className="h-14 rounded-xl bg-slate-100 animate-pulse"
-                  />
-                ))}
-              </div>
-            ) : recentRequests.length ? (
+            {recentRequests.length ? (
               <ul className="space-y-3">
                 {recentRequests.map((requestUser) => (
                   <li
